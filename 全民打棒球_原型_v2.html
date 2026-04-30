@@ -127,14 +127,15 @@ html,body{width:100%;height:100%;background:#000;display:flex;align-items:center
 #wb-cont{margin-top:.5vw;padding:.7vw 3vw;border-radius:999px;background:var(--c-gold);color:#000;font-size:1.8vw;font-weight:900;border:none;cursor:pointer}
 
 /* BONUS */
-#bonus{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 30%,#3a2a00,#1a1200 60%,#000800);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:15}
-#bonus.active{display:flex}
-#bn-title{font-size:2.8vw;font-weight:900;color:var(--c-gold);margin-bottom:.8vw}
-#bn-mult{font-size:7vw;font-weight:900;color:#fff;text-shadow:0 0 3vw rgba(245,197,24,.8);line-height:1}
-#bn-mult-lbl{font-size:1.1vw;color:var(--c-dim);margin-bottom:2vw}
-#bn-ev{font-size:2.8vw;font-weight:900;color:#fff;min-height:4vw;text-shadow:0 0 2vw rgba(0,0,0,.8);opacity:0;transition:opacity .3s}
+#bonus{position:absolute;inset:0;display:none;z-index:15;pointer-events:none}
+#bonus.active{display:block}
+#bn-info{position:absolute;top:2%;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.3vw;background:rgba(0,0,0,.80);padding:.8vw 3vw 1vw;border-radius:1.5vw;border:.2vw solid rgba(245,197,24,.5);white-space:nowrap;pointer-events:none}
+#bn-title{font-size:1.8vw;font-weight:900;color:var(--c-gold)}
+#bn-mult{font-size:5vw;font-weight:900;color:#fff;text-shadow:0 0 3vw rgba(245,197,24,.8);line-height:1.1}
+#bn-mult-lbl{font-size:1vw;color:var(--c-dim)}
+#bn-ev{font-size:2.4vw;font-weight:900;color:#fff;min-height:3.2vw;text-shadow:0 0 1.5vw rgba(245,197,24,.9);opacity:0;transition:opacity .3s}
 #bn-ev.show{opacity:1}
-#bn-outs{font-size:1.2vw;color:var(--c-dim);margin-top:1.5vw}
+#bn-outs{font-size:1.1vw;color:var(--c-dim)}
 #jp-pools{position:absolute;top:14%;right:3%;display:flex;flex-direction:column;gap:.8vw;align-items:flex-end}
 .jp-row{display:flex;align-items:center;gap:.8vw;background:rgba(0,0,0,.6);padding:.5vw 1.2vw;border-radius:999px;border:.15vw solid rgba(255,255,255,.15)}
 .jp-lbl{font-size:1.1vw;font-weight:800}
@@ -166,6 +167,25 @@ html,body{width:100%;height:100%;background:#000;display:flex;align-items:center
 /* AUTO BTN */
 #auto-btn{padding:.4vw 1.6vw;border-radius:999px;border:.15vw solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:var(--c-dim);font-size:1.3vw;font-weight:800;cursor:pointer;transition:all .2s;letter-spacing:.05em}
 #auto-btn.on{background:var(--c-green);border-color:var(--c-green);color:#000;box-shadow:0 0 1.5vw rgba(34,197,94,.5)}
+
+/* HELP */
+#help-btn{position:absolute;bottom:11.5%;left:5%;z-index:50;background:rgba(0,0,0,.65);border:.1vw solid rgba(255,255,255,.3);color:rgba(255,255,255,.6);font-size:1.1vw;font-weight:900;padding:.25vw .8vw;border-radius:.3vw;cursor:pointer}
+#help-panel{position:absolute;inset:0;background:rgba(0,0,0,.92);z-index:80;display:none;overflow-y:auto;padding:2vw 6vw}
+#help-panel.open{display:block}
+#help-close{position:sticky;top:0;float:right;background:rgba(255,255,255,.12);border:.1vw solid rgba(255,255,255,.3);color:#fff;font-size:1.3vw;font-weight:900;padding:.3vw 1vw;border-radius:.4vw;cursor:pointer;margin-bottom:1vw}
+.hp-h1{font-size:2.2vw;font-weight:900;color:var(--c-gold);border-bottom:.2vw solid rgba(245,197,24,.4);padding-bottom:.5vw;margin:1.5vw 0 .8vw}
+.hp-h1:first-of-type{margin-top:0}
+.hp-h2{font-size:1.3vw;font-weight:800;color:#4fc3f7;margin:.8vw 0 .3vw}
+.hp-p{font-size:1.1vw;color:#ccc;line-height:1.8;margin:.2vw 0}
+.hp-table{width:100%;border-collapse:collapse;font-size:1.05vw;margin:.4vw 0 .8vw}
+.hp-table th{color:var(--c-gold);font-weight:800;text-align:left;padding:.4vw .8vw;border-bottom:.1vw solid rgba(255,255,255,.2)}
+.hp-table td{color:#ccc;padding:.35vw .8vw;border-bottom:.1vw solid rgba(255,255,255,.06)}
+.hp-table tr:hover td{background:rgba(255,255,255,.04)}
+.hp-tag{display:inline-block;padding:.1vw .6vw;border-radius:.3vw;font-size:.9vw;font-weight:800;margin-right:.3vw}
+.hp-tag.gold{background:rgba(245,197,24,.25);color:var(--c-gold)}
+.hp-tag.blue{background:rgba(79,195,247,.2);color:#4fc3f7}
+.hp-tag.red{background:rgba(239,68,68,.2);color:#ef4444}
+.hp-tag.green{background:rgba(34,197,94,.2);color:#22c55e}
 
 /* DEBUG PANEL */
 #dbg-btn{position:absolute;bottom:11.5%;left:.4%;z-index:50;background:rgba(0,0,0,.65);border:.1vw solid rgba(255,255,255,.2);color:rgba(255,255,255,.45);font-size:.95vw;padding:.25vw .7vw;border-radius:.3vw;cursor:pointer}
@@ -261,11 +281,13 @@ html,body{width:100%;height:100%;background:#000;display:flex;align-items:center
 
   <!-- Bonus -->
   <div id="bonus">
-    <div id="bn-title">⚾ 延長賽 BONUS</div>
-    <div id="bn-mult">2×</div>
-    <div id="bn-mult-lbl">當前倍率</div>
-    <div id="bn-ev"></div>
-    <div id="bn-outs"></div>
+    <div id="bn-info">
+      <div id="bn-title">⚾ 延長賽 BONUS</div>
+      <div id="bn-mult">2×</div>
+      <div id="bn-mult-lbl">當前倍率</div>
+      <div id="bn-ev"></div>
+      <div id="bn-outs"></div>
+    </div>
     <div id="jp-pools">
       <div class="jp-row grand"><span class="jp-lbl">GRAND</span><span class="jp-amt" id="jp-grand">—</span></div>
       <div class="jp-row major"><span class="jp-lbl">MAJOR</span><span class="jp-amt" id="jp-major">—</span></div>
@@ -278,6 +300,74 @@ html,body{width:100%;height:100%;background:#000;display:flex;align-items:center
     <div id="jpf-title"></div>
     <div id="jpf-amt"></div>
     <button id="jpf-cont">繼續</button>
+  </div>
+
+  <!-- Help -->
+  <button id="help-btn" onclick="helpToggle()">？說明</button>
+  <div id="help-panel">
+    <button id="help-close" onclick="helpToggle()">✕ 關閉</button>
+
+    <div class="hp-h1">遊戲概述</div>
+    <p class="hp-p">全民打棒球是以職棒 9 局下半為主題的彩金機台。下注後系統預先決定本局得分與比賽結果，玩家透過<b>預測</b>與<b>打擊方向</b>賺取額外加碼。</p>
+
+    <div class="hp-h1">投注流程</div>
+    <p class="hp-p"><span class="hp-tag gold">1 選注</span>畫面底部選擇底注金額</p>
+    <p class="hp-p"><span class="hp-tag gold">2 預測</span>最多兩注預測（本局得分 + 結果加注），命中各加碼 ×5 底注</p>
+    <p class="hp-p"><span class="hp-tag gold">3 方向</span>每打席選擇打擊方向，猜中為完美打擊</p>
+    <p class="hp-p"><span class="hp-tag gold">4 結算</span>依得分類型、預測命中、完美打擊次數計算總獎金</p>
+
+    <div class="hp-h1">預測選項</div>
+    <div class="hp-h2">本局得分（主隊9局得分）</div>
+    <table class="hp-table">
+      <tr><th>選項</th><th>條件</th><th>賠率</th></tr>
+      <tr><td>無得分</td><td>本局 0 分</td><td>2.5×</td></tr>
+      <tr><td>小得分</td><td>本局 1–3 分</td><td>1.8×</td></tr>
+      <tr><td>大得分</td><td>本局 4–7 分</td><td>4.5×</td></tr>
+      <tr><td>爆發</td><td>本局 8 分以上</td><td>12×</td></tr>
+    </table>
+    <div class="hp-h2">結果加注（雙方合計）</div>
+    <table class="hp-table">
+      <tr><th>選項</th><th>條件</th><th>賠率</th></tr>
+      <tr><td>大分</td><td>雙方合計 ≥ 8 分</td><td>1.9×</td></tr>
+      <tr><td>小分</td><td>雙方合計 &lt; 8 分</td><td>1.9×</td></tr>
+      <tr><td>全壘打</td><td>本局至少一支全壘打</td><td>3.5×</td></tr>
+      <tr><td>單</td><td>雙方合計為單數</td><td>1.9×</td></tr>
+      <tr><td>雙</td><td>雙方合計為雙數</td><td>1.9×</td></tr>
+    </table>
+
+    <div class="hp-h1">基本賠付</div>
+    <table class="hp-table">
+      <tr><th>得分類型</th><th>得分範圍</th><th>基本賠付</th></tr>
+      <tr><td>完封</td><td>0 分</td><td>0.5× 底注</td></tr>
+      <tr><td>小得分</td><td>1–3 分</td><td>1× 底注</td></tr>
+      <tr><td>大得分</td><td>4–7 分</td><td>2.5× 底注</td></tr>
+      <tr><td>爆發</td><td>8 分以上</td><td>6× 底注</td></tr>
+    </table>
+
+    <div class="hp-h1">完美打擊</div>
+    <p class="hp-p">選對打擊方向時，安打/全壘打稱為完美打擊，本局累積次數越多，結算加碼越高。</p>
+    <table class="hp-table">
+      <tr><th>次數</th><th>加碼</th></tr>
+      <tr><td>3 次</td><td>+1× 底注</td></tr>
+      <tr><td>4 次</td><td>+2× 底注</td></tr>
+      <tr><td>5 次</td><td>+5× 底注</td></tr>
+      <tr><td>6 次以上</td><td>+10× 底注</td></tr>
+    </table>
+
+    <div class="hp-h1">暴投獎勵</div>
+    <p class="hp-p">投手暴投時打者上一壘，並立即獲得 <span class="hp-tag gold">+0.3× 底注</span> 的即時獎勵。</p>
+
+    <div class="hp-h1">延長賽 BONUS</div>
+    <p class="hp-p">比賽結果<b>平局</b>（雙方合計相同）時觸發延長賽。每球有 40% 機率安打，初始倍率 2×，每次安打翻倍（上限 64×）；出局倍率歸零。共 3 次出局結束。</p>
+
+    <div class="hp-h1">JACKPOT</div>
+    <p class="hp-p">延長賽中打出<b>全壘打</b>觸發 JP，等級由當時壘包人數決定：</p>
+    <table class="hp-table">
+      <tr><th>壘包狀況</th><th>JP 等級</th><th>獎金</th></tr>
+      <tr><td>0–1 人在壘</td><td><span class="hp-tag blue">MINI</span></td><td>5× 底注</td></tr>
+      <tr><td>2 人在壘</td><td><span class="hp-tag" style="background:rgba(167,139,250,.2);color:#a78bfa">MAJOR</span></td><td>25× 底注</td></tr>
+      <tr><td>滿壘（滿貫砲）</td><td><span class="hp-tag gold">GRAND</span></td><td>100× 底注</td></tr>
+    </table>
   </div>
 
   <!-- Debug -->
@@ -312,15 +402,15 @@ const CFG = {
   basePayout: { shutout:.5, small:1.0, big:2.5, explosion:6.0 },
   predBonus:  5,
   predictions: [
-    { id:'shutout',     label:'完封',   sub:'本局0分',      odds:2.5,  group:'score' },
+    { id:'noscored',    label:'無得分', sub:'本局0分',      odds:2.5,  group:'score' },
     { id:'small',       label:'小得分', sub:'1–3分',        odds:1.8,  group:'score' },
     { id:'big',         label:'大得分', sub:'4–7分',        odds:4.5,  group:'score' },
     { id:'explosion',   label:'爆發',   sub:'8分以上',      odds:12.0, group:'score' },
     { id:'total_big',   label:'大分',   sub:'兩隊≥8分',    odds:1.9,  group:'total' },
     { id:'total_small', label:'小分',   sub:'兩隊<8分',     odds:1.9,  group:'total' },
     { id:'has_hr',      label:'全壘打', sub:'本局至少一支', odds:3.5,  group:'total' },
-    { id:'odd',         label:'單',     sub:'本局得分單數', odds:1.9,  group:'total' },
-    { id:'even',        label:'雙',     sub:'本局得分雙數', odds:1.9,  group:'total' },
+    { id:'odd',         label:'單',     sub:'總得分單數',   odds:1.9,  group:'total' },
+    { id:'even',        label:'雙',     sub:'總得分雙數',   odds:1.9,  group:'total' },
   ],
   dirHitRate: 0.45,
   wildpitchBonus: 0.3,
@@ -328,9 +418,9 @@ const CFG = {
   bonusMaxMult:  64,
   bonusMaxOuts:  3,
   jp: {
-    mini:  { label:'MINI',  baseMult:50,   prob:.05,  color:'#4fc3f7' },
-    major: { label:'MAJOR', baseMult:500,  prob:.01,  color:'#a78bfa' },
-    grand: { label:'GRAND', baseMult:5000, prob:.001, color:'#f5c518' },
+    mini:  { label:'MINI',  baseMult:5,   color:'#4fc3f7' },
+    major: { label:'MAJOR', baseMult:25,  color:'#a78bfa' },
+    grand: { label:'GRAND', baseMult:100, color:'#f5c518' },
   },
   tieProb:  0.15,
   bigProb:  0.50,   // 非平局、非爆發局時大分機率（後台可調）
@@ -469,7 +559,7 @@ function checkPredScore(p) {
   if(!p) return false;
   const h=S.homeDisplay;
   switch(p.id){
-    case'shutout':   return h===0;
+    case'noscored':  return h===0;
     case'small':     return h>=1&&h<=3;
     case'big':       return h>=4&&h<=7;
     case'explosion': return h>=8;
@@ -487,8 +577,8 @@ function checkPredTotal(p) {
     case'total_big':   return gt>=8;
     case'total_small': return gt<8;
     case'has_hr':      return S.hasHR;
-    case'odd':         return h%2===1;
-    case'even':        return h%2===0;
+    case'odd':         return gt%2===1;
+    case'even':        return gt%2===0;
     default: return false;
   }
 }
@@ -773,7 +863,7 @@ async function playAB(){
 // ===== SETTLE =====
 async function endInning(){
   S.phase='SETTLE';
-  const isTie=dbgCheck('dbg-forcebonus')||((S.priorHome+S.runScore)===(S.priorOpp+S.oppNinth));
+  const isTie=dbgCheck('dbg-forcebonus')||((S.priorHome+S.homeDisplay)===(S.priorOpp+S.oppNinth));
   const base=Math.round(S.bet*CFG.basePayout[S.runCat]);
   const scoreOK=checkPredScore(S.predScore);
   const totalOK=checkPredTotal(S.predTotal);
@@ -819,20 +909,39 @@ function enterBonus(){
 async function bonusBall(){
   if(S.bonusOuts>=CFG.bonusMaxOuts){ endBonus(); return; }
   const r=Math.random();
-  let type, win=0;
-  if(r<.40){
-    type=ch(.20)?'homerun':ch(.35)?'double':'single';
-    let sc=0;
-    if(type==='homerun'){ sc=1+S.bonusBases.filter(b=>b).length; S.bonusBases.fill(false); }
-    else if(type==='double') sc=advBases(S.bonusBases,2);
-    else sc=advBases(S.bonusBases,1);
-    win=S.bet*S.bonusMult;
+  let type, win=0, jpKey=null;
+  const isHit=r<.40;
+  if(isHit) type=ch(.20)?'homerun':ch(.35)?'double':'single';
+  else       type=ch(.4)?'strikeout':ch(.5)?'flyout':'groundout';
+
+  // 投球動畫
+  const pt=$('pitcher'); pt.classList.add('throw');
+  setTimeout(()=>pt.classList.remove('throw'),500);
+  await animatePitch();
+
+  // 擊球動畫（安打/全壘打）
+  if(isHit){
+    const dir=['left','center','right'][Math.floor(Math.random()*3)];
+    await animateHit(type==='homerun'?'homerun':'single', dir);
+  }
+
+  if(isHit){
+    if(type==='homerun'){
+      const runners=S.bonusBases.filter(b=>b).length;
+      jpKey = runners>=3?'grand':runners>=2?'major':'mini';
+      win=S.bet*S.bonusMult*(1+runners);
+      S.bonusBases.fill(false);
+    } else {
+      type==='double'?advBases(S.bonusBases,2):advBases(S.bonusBases,1);
+      win=S.bet*S.bonusMult;
+    }
+    renderBases(S.bonusBases);
     S.coins+=win; S.bonusWin+=win; S.session+=win; renderCoins();
     $('session-val').textContent=(S.session>=0?'+':'')+S.session.toLocaleString();
     if(S.bonusMult<CFG.bonusMaxMult) S.bonusMult=Math.min(CFG.bonusMaxMult,S.bonusMult*2);
   } else {
-    type=ch(.4)?'strikeout':ch(.5)?'flyout':'groundout';
     S.bonusOuts++; S.bonusMult=CFG.bonusInitMult;
+    S.bonusBases.fill(false); renderBases(S.bonusBases);
   }
   $('bn-mult').textContent=S.bonusMult+'×';
   $('bn-outs').textContent=`出局：${S.bonusOuts} / ${CFG.bonusMaxOuts}`;
@@ -848,28 +957,21 @@ async function bonusBall(){
   bev.textContent=evTxt[type]||type; bev.classList.add('show');
   setTimeout(()=>bev.classList.remove('show'),1300);
 
-  // JP check — grand > major > mini
-  const triggered=[];
+  // JP：全壘打觸發，等級由壘包人數決定（0–1人=Mini, 2人=Major, 滿壘=Grand）
   const jpOv=dbgGet('dbg-forcejp');
-  if(jpOv && jpOv in CFG.jp){ triggered.push(jpOv); $('dbg-forcejp').value=''; }
-  for(const [key,cfg] of Object.entries(CFG.jp)){
-    if(ch(cfg.prob)) triggered.push(key);
-  }
-  if(triggered.length){
-    const best=['grand','major','mini'].find(k=>triggered.includes(k));
-    if(best){
-      const cfg=CFG.jp[best];
-      const amt=S.jpPools[best];
-      S.jpPools[best]=cfg.baseMult*S.bet; renderJP();
-      S.coins+=amt; S.bonusWin+=amt; S.session+=amt; renderCoins();
-      await wait(600);
-      $('jpf-title').textContent=cfg.label+' JACKPOT！';
-      $('jpf-title').style.color=cfg.color;
-      $('jpf-amt').textContent='+'+amt.toLocaleString();
-      $('jp-flash').classList.add('active');
-      if (S.autoPlay) autoTick(onJPCont, 2500);
-      return;
-    }
+  const best=jpOv&&jpOv in CFG.jp?(()=>{ $('dbg-forcejp').value=''; return jpOv; })():jpKey;
+  if(best){
+    const cfg=CFG.jp[best];
+    const amt=S.jpPools[best];
+    S.jpPools[best]=cfg.baseMult*S.bet; renderJP();
+    S.coins+=amt; S.bonusWin+=amt; S.session+=amt; renderCoins();
+    await wait(600);
+    $('jpf-title').textContent=cfg.label+' JACKPOT！';
+    $('jpf-title').style.color=cfg.color;
+    $('jpf-amt').textContent='+'+amt.toLocaleString();
+    $('jp-flash').classList.add('active');
+    if (S.autoPlay) autoTick(onJPCont, 2500);
+    return;
   }
   await wait(CFG.evDelay);
   bonusBall();
@@ -939,6 +1041,10 @@ let _dbgTimer = null;
 
 function dbgGet(id){ const el=$(id); return el?el.value:''; }
 function dbgCheck(id){ const el=$(id); return el?el.checked:false; }
+
+function helpToggle(){
+  $('help-panel').classList.toggle('open');
+}
 
 function dbgToggle(){
   DBG.open=!DBG.open;
