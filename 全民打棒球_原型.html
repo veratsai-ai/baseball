@@ -387,11 +387,25 @@ html, body {
   transition: transform 0.3s;
 }
 
+#bonus-field {
+  position: absolute;
+  top: 36%; left: 50%;
+  transform: translateX(-50%);
+  width: min(22vw, 30vh);
+  aspect-ratio: 1;
+}
+
+#bonus-diamond {
+  position: absolute;
+  width: 60%; height: 60%;
+  top: 20%; left: 20%;
+}
+
 #bonus-pitcher {
   position: absolute;
-  bottom: 35%; left: 50%;
-  transform: translateX(-50%);
-  font-size: 8vw;
+  top: 42%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: min(2.5vw, 3.5vh);
   filter: drop-shadow(0 0 1vw rgba(255,0,0,0.7));
 }
 
@@ -577,6 +591,11 @@ html, body {
   70%  { opacity: 1; transform: translateX(-50%) scale(1.1) translateY(-0.5vw); }
   100% { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
 }
+@keyframes bonusFieldIn {
+  0%   { opacity: 0; transform: translateX(-50%) scale(0.5); }
+  70%  { opacity: 1; transform: translateX(-50%) scale(1.05); }
+  100% { opacity: 1; transform: translateX(-50%) scale(1); }
+}
 </style>
 </head>
 <body>
@@ -744,7 +763,20 @@ html, body {
       <div class="out-dot" id="bout-0"></div>
       <div class="out-dot" id="bout-1"></div>
     </div>
-    <div id="bonus-pitcher">🧑‍⚾</div>
+    <div id="bonus-field">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,var(--c-field2) 0%,var(--c-field) 60%,#0d2b18 100%);border-radius:50%;"></div>
+      <div style="position:absolute;top:25%;left:25%;right:25%;bottom:15%;background:radial-gradient(ellipse,#6b4c11 0%,#4a3408 100%);border-radius:50%;opacity:0.55;"></div>
+      <div id="bonus-diamond">
+        <div class="base-node" id="bonus-base-3"></div>
+        <div class="base-node" id="bonus-base-2"></div>
+        <div class="base-node" id="bonus-base-1"></div>
+        <div class="base-node" id="bonus-base-h"></div>
+        <div class="runner-amount" id="bonus-runner-amt-1" style="display:none;"></div>
+        <div class="runner-amount" id="bonus-runner-amt-2" style="display:none;"></div>
+        <div class="runner-amount" id="bonus-runner-amt-3" style="display:none;"></div>
+      </div>
+      <div id="bonus-pitcher">🧑‍⚾</div>
+    </div>
     <div id="bonus-ball-anim" style="position:absolute;inset:0;pointer-events:none;z-index:50;"></div>
     <div id="bonus-result-overlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:80;">
       <div id="bonus-result-badge" style="font-size:var(--fs-2xl);font-weight:900;padding:1% 3%;border-radius:calc(var(--r)*3);opacity:0;transform:scale(0.5);"></div>
@@ -983,22 +1015,27 @@ function updateStrikeDots() {
 }
 
 function updateBaseDisplay() {
+  const offsets = [
+    { right:'10%', top:'52%' },
+    { left:'44%',  top:'2%'  },
+    { left:'2%',   top:'52%' },
+  ];
   ['1','2','3'].forEach((b, i) => {
-    const node = document.getElementById('base-'+b);
-    const lbl  = document.getElementById('runner-amt-'+b);
     const runner = S.bases[i];
-    node.classList.toggle('occupied', !!runner);
-    if (runner && runner.amount > 0) {
-      lbl.style.display = 'block';
-      lbl.textContent = '+' + runner.amount.toLocaleString();
-      const offsets = [
-        { right:'10%', top:'52%' },
-        { left:'44%',  top:'2%'  },
-        { left:'2%',   top:'52%' },
-      ];
-      Object.assign(lbl.style, offsets[i]);
-    } else {
-      lbl.style.display = 'none';
+    for (const prefix of ['', 'bonus-']) {
+      const node = document.getElementById(prefix+'base-'+b);
+      const lbl  = document.getElementById(prefix+'runner-amt-'+b);
+      if (!node) continue;
+      node.classList.toggle('occupied', !!runner);
+      if (lbl) {
+        if (runner && runner.amount > 0) {
+          lbl.style.display = 'block';
+          lbl.textContent = '+' + runner.amount.toLocaleString();
+          Object.assign(lbl.style, offsets[i]);
+        } else {
+          lbl.style.display = 'none';
+        }
+      }
     }
   });
 }
@@ -1323,10 +1360,12 @@ function triggerBonus() {
   S.isAnimating = false;
 
   showScreen('bonus-screen');
-  const pitcher = document.getElementById('bonus-pitcher');
-  pitcher.style.animation = 'bonusEntrance 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards';
+  const field = document.getElementById('bonus-field');
+  field.style.animation = 'none'; field.offsetHeight;
+  field.style.animation = 'bonusFieldIn 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards';
   updateBonusMult();
   updateBonusOutDots();
+  updateBaseDisplay();
   updateJPDisplay();
   setTimeout(() => enableBonusPitchBtn(), 900);
 }
@@ -1356,7 +1395,8 @@ function processBonusResult(result, isOut) {
 
   if (isOut) {
     S.bonusMult = 1; S.bonusOuts++;
-    updateBonusMult(); updateBonusOutDots();
+    S.bases = [null, null, null];
+    updateBonusMult(); updateBonusOutDots(); updateBaseDisplay();
     const lbl = result === 'flyout' ? '接殺 OUT' : result === 'groundout' ? '滾地 OUT' : '三振 K';
     showResultBadge(badgeEl, lbl + ' — 倍率歸零', '#ef9a9a', 'rgba(183,28,28,0.8)', () => {
       if (S.bonusOuts >= 3) endBonus();
@@ -1365,25 +1405,37 @@ function processBonusResult(result, isOut) {
   } else {
     if (S.bonusMult < CFG.BONUS_MULT_MAX) S.bonusMult *= 2;
     S.bonusHits++; updateBonusMult();
+
+    const { scored, newBases } = advanceBases(result);
+    const runnerBonus = scored.reduce((a, r) => a + (r ? r.amount : 0), 0);
+    if (result !== 'homerun') {
+      const bPos = result === 'double' ? 1 : 0;
+      if (newBases[bPos]) newBases[bPos].amount = Math.round(S.bet * S.bonusMult * 0.5);
+    } else {
+      newBases[0] = newBases[1] = newBases[2] = null;
+    }
+    S.bases = newBases;
+    if (runnerBonus > 0) { S.score += runnerBonus; updateScoreDisplay(); }
+    updateBaseDisplay();
+
     const t = { homerun:'全壘打 🔥', single:'安打！', double:'二安！', wildpitch:'暴投' }[result] || '安打！';
-    showResultBadge(badgeEl, t + ' ×2', '#ffd700', 'rgba(100,70,0,0.85)', () => checkBonusJP());
+    showResultBadge(badgeEl, t + ' ×2', '#ffd700', 'rgba(100,70,0,0.85)', () => {
+      if (result === 'homerun') checkBonusJP();
+      else { S.isAnimating = false; enableBonusPitchBtn(); }
+    });
   }
 }
 
 function checkBonusJP() {
-  const tier = rollJP();
-  if (tier) {
-    const amt = S.jp[tier];
-    S.score += amt; updateScoreDisplay();
-    S.jp[tier] = CFG.JP[tier].base * S.bet; updateJPDisplay();
-    showJPOverlay(tier, amt, () => {
-      S.isAnimating = false;
-      enableBonusPitchBtn();
-    });
-  } else {
+  const r = Math.random();
+  const tier = r < 0.05 ? 'grand' : r < 0.20 ? 'major' : 'mini';
+  const amt = S.jp[tier];
+  S.score += amt; updateScoreDisplay();
+  S.jp[tier] = CFG.JP[tier].base * S.bet; updateJPDisplay();
+  showJPOverlay(tier, amt, () => {
     S.isAnimating = false;
     enableBonusPitchBtn();
-  }
+  });
 }
 
 function endBonus() {
