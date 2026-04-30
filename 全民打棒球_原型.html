@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>全民打棒球</title>
+<style>
+/* === VARIABLES === */
+:root {
+  --c-bg:        #0a1628;
+  --c-field:     #1a472a;
+  --c-field2:    #145a32;
+  --c-dirt:      #8B6914;
+  --c-base:      #f5e6c8;
+  --c-base-on:   #f9a825;
+  --c-accent:    #e53935;
+  --c-gold:      #ffd700;
+  --c-silver:    #c0c0c0;
+  --c-text:      #ffffff;
+  --c-text-dim:  #aab4c4;
+  --c-panel:     rgba(5,15,35,0.88);
+  --c-btn:       #1565c0;
+  --c-btn-h:     #1976d2;
+  --c-grid-sel:  #f9a825;
+  --c-jp-mini:   #43a047;
+  --c-jp-major:  #1e88e5;
+  --c-jp-grand:  #e53935;
+
+  --r: 0.5vw;
+  --fs-sm:  min(1.4vw, 2.5vh);
+  --fs-md:  min(1.8vw, 3.2vh);
+  --fs-lg:  min(2.4vw, 4.3vh);
+  --fs-xl:  min(3.2vw, 5.7vh);
+  --fs-2xl: min(4.8vw, 8.5vh);
+}
+
+/* === LAYOUT === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--c-bg);
+  overflow: hidden;
+  font-family: 'Arial', sans-serif;
+  color: var(--c-text);
+  touch-action: manipulation;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--c-bg);
+  overflow: hidden;
+}
+
+/* === SCREENS === */
+.screen { position: absolute; inset: 0; display: none; }
+.screen.active { display: block; }
+
+/* Main screen: 4-row grid */
+#main-screen.active {
+  display: grid;
+  grid-template-rows: 7vh 1fr 42vh 8vh;
+  height: 100%;
+}
+
+/* === COMPONENTS === */
+
+/* --- Top Bar (row 1) --- */
+#top-bar {
+  display: flex;
+  align-items: center;
+  padding: 0 2%;
+  gap: 1.5%;
+  z-index: 10;
+  overflow: hidden;
+}
+
+#score-display {
+  background: var(--c-panel);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: calc(var(--r)*2);
+  padding: 0.4% 1.5%;
+  text-align: center;
+  min-width: 12%;
+}
+#score-display .label { font-size: var(--fs-sm); color: var(--c-text-dim); }
+#score-display .value { font-size: var(--fs-lg); font-weight: 700; color: var(--c-gold); }
+
+.separator { flex: 1; }
+
+/* --- JP Bar --- */
+#jp-bar {
+  display: flex;
+  gap: 1%;
+  z-index: 10;
+}
+
+.jp-badge {
+  border-radius: calc(var(--r)*2);
+  padding: 0.3% 1%;
+  text-align: center;
+  min-width: 10%;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: var(--c-panel);
+}
+.jp-badge .jp-name  { font-size: var(--fs-sm); font-weight: 700; }
+.jp-badge .jp-val   { font-size: var(--fs-md); color: var(--c-gold); }
+.jp-badge.mini  { border-color: var(--c-jp-mini);  }
+.jp-badge.major { border-color: var(--c-jp-major); }
+.jp-badge.grand { border-color: var(--c-jp-grand); }
+.jp-badge.mini  .jp-name { color: var(--c-jp-mini);  }
+.jp-badge.major .jp-name { color: var(--c-jp-major); }
+.jp-badge.grand .jp-name { color: var(--c-jp-grand); }
+
+/* --- Field (row 2) --- */
+#field-area {
+  position: relative;
+  width: 60%;
+  margin: 0 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#field-svg-wrap {
+  position: relative;
+  width: 100%; height: 100%;
+}
+
+/* Diamond bases */
+#diamond {
+  position: absolute;
+  width: 60%; height: 60%;
+  top: 20%; left: 20%;
+}
+
+.base-node {
+  position: absolute;
+  width: 9%; height: 9%;
+  background: var(--c-base);
+  transform: rotate(45deg);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.base-node.occupied {
+  background: var(--c-base-on);
+  box-shadow: 0 0 1vw var(--c-base-on);
+}
+#base-1 { right: 0;   top: 50%;  transform: rotate(45deg) translate(0,-50%); }
+#base-2 { left: 50%;  top: 0;    transform: rotate(45deg) translate(-50%,0); }
+#base-3 { left: 0;    top: 50%;  transform: rotate(45deg) translate(0,-50%); }
+#base-h { left: 50%;  bottom: 0; transform: rotate(45deg) translate(-50%,0); }
+
+.runner-amount {
+  position: absolute;
+  font-size: var(--fs-sm);
+  color: var(--c-gold);
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 1px 3px #000;
+}
+
+/* Out + Strike counter */
+#out-counter {
+  position: absolute;
+  bottom: 5%; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 1vw; align-items: center;
+}
+#out-counter .out-label { font-size: var(--fs-sm); color: var(--c-text-dim); }
+.out-dot {
+  width: 1.5vw; height: 1.5vw;
+  border-radius: 50%;
+  border: 0.2vw solid var(--c-accent);
+  background: transparent;
+  transition: background 0.25s;
+}
+.out-dot.active { background: var(--c-accent); }
+.str-dot {
+  width: 1.5vw; height: 1.5vw;
+  border-radius: 50%;
+  border: 0.2vw solid var(--c-gold);
+  background: transparent;
+  transition: background 0.25s;
+}
+.str-dot.active { background: var(--c-gold); }
+#strike-counter { display: flex; gap: 0.6vw; align-items: center; }
+
+/* Ball animation layer */
+#ball-anim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* --- Bottom Area (row 3) --- */
+#bottom-area {
+  display: flex;
+  align-items: stretch;
+  gap: 1vw;
+  padding: 1vh 2vw;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Bet selector */
+#bet-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5%;
+  min-width: 14%;
+}
+#bet-panel .panel-title { font-size: var(--fs-sm); color: var(--c-text-dim); margin-bottom: 0.3%; }
+
+.bet-btn {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--r);
+  color: var(--c-text);
+  font-size: min(var(--fs-sm), 2vh);
+  padding: 0.6vh 0;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+.bet-btn.selected {
+  background: var(--c-btn);
+  border-color: var(--c-gold);
+  color: var(--c-gold);
+  font-weight: 700;
+}
+.bet-btn:hover { background: rgba(255,255,255,0.12); }
+.bet-btn.selected:hover { background: var(--c-btn-h); }
+
+/* Nine-grid */
+#grid-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 0.3vh;
+  min-height: 0;
+  min-width: 0;
+}
+#grid-label-row {
+  display: flex; gap: 0.3vh;
+  padding-left: 8%;
+}
+#grid-label-row span {
+  flex: 1; text-align: center;
+  font-size: var(--fs-sm); color: var(--c-text-dim);
+}
+#grid-rows { display: flex; flex-direction: column; gap: 0.3vh; flex: 1; min-height: 0; overflow: hidden; }
+.grid-row { display: flex; gap: 0.3vh; align-items: stretch; flex: 1; min-height: 0; }
+.grid-row-label {
+  width: 8%;
+  font-size: var(--fs-sm);
+  color: var(--c-text-dim);
+  text-align: center;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.grid-cell {
+  flex: 1;
+  min-height: 0;
+  border-radius: var(--r);
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0.15vh;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  user-select: none;
+}
+.grid-cell:active { transform: scale(0.95); }
+.grid-cell .cell-mult { font-size: min(var(--fs-md), 2.8vh); font-weight: 700; color: var(--c-gold); line-height: 1.1; }
+.grid-cell .cell-zone { font-size: min(var(--fs-sm), 2vh);   color: var(--c-text-dim); line-height: 1.1; }
+.grid-cell .cell-hit  { font-size: min(calc(var(--fs-sm)*0.85), 1.6vh); color: #80cbc4; line-height: 1.1; }
+.grid-cell.selected {
+  background: rgba(249,168,37,0.22);
+  border-color: var(--c-gold);
+  box-shadow: 0 0 0.8vw rgba(249,168,37,0.5);
+}
+.grid-cell.perfect-flash { animation: perfectFlash 0.6s ease-out; }
+
+/* Pitch button */
+#pitch-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3%;
+  min-width: 14%;
+}
+
+#btn-pitch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: none;
+  background: radial-gradient(circle at 35% 35%, #42a5f5, #0d47a1);
+  color: #fff;
+  font-size: var(--fs-lg);
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 0 2vw rgba(25,118,210,0.6);
+  transition: transform 0.1s, box-shadow 0.1s;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+}
+#btn-pitch:active { transform: scale(0.93); box-shadow: 0 0 1vw rgba(25,118,210,0.4); }
+#btn-pitch.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+#btn-pitch .pitch-sub { font-size: var(--fs-sm); opacity: 0.7; }
+
+#pay-preview { font-size: var(--fs-sm); color: var(--c-text-dim); text-align: center; }
+#pay-preview span { color: var(--c-gold); font-weight: 700; }
+
+/* Auto button */
+.btn-auto {
+  border: 1.5px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.08);
+  color: var(--c-text-dim);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.5vh 1.4vw;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.btn-auto.active {
+  background: var(--c-gold);
+  border-color: var(--c-gold);
+  color: #000;
+  box-shadow: 0 0 1vw rgba(255,215,0,0.5);
+}
+.btn-auto:active { transform: scale(0.95); }
+#btn-auto-bonus {
+  position: absolute;
+  bottom: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* --- Asset Bar (row 4) --- */
+#asset-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 3%;
+  background: rgba(0,0,0,0.55);
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.asset-item {
+  display: flex; flex-direction: column;
+  align-items: center; flex: 1;
+  text-align: center;
+}
+.asset-item .asset-label { font-size: var(--fs-sm); color: var(--c-text-dim); }
+.asset-item .asset-value { font-size: var(--fs-lg); font-weight: 700; color: var(--c-gold); }
+.asset-item.win-item   .asset-value { color: #a5d6a7; }
+.asset-item.score-item .asset-value { color: #fff; }
+.asset-divider { width: 1px; height: 55%; background: rgba(255,255,255,0.15); }
+
+/* --- Bonus Screen --- */
+#bonus-screen {
+  background: radial-gradient(ellipse at center, #1a0533 0%, #000 100%);
+}
+
+#bonus-multiplier {
+  position: absolute;
+  top: 15%; left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+#bonus-multiplier .label { font-size: var(--fs-md); color: var(--c-text-dim); }
+#bonus-multiplier .value {
+  font-size: var(--fs-2xl);
+  font-weight: 900;
+  color: var(--c-gold);
+  text-shadow: 0 0 2vw var(--c-gold);
+  transition: transform 0.3s;
+}
+
+#bonus-pitcher {
+  position: absolute;
+  bottom: 35%; left: 50%;
+  transform: translateX(-50%);
+  font-size: 8vw;
+  filter: drop-shadow(0 0 1vw rgba(255,0,0,0.7));
+}
+
+#bonus-outs {
+  position: absolute;
+  top: 30%; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 1vw; align-items: center;
+}
+
+#btn-pitch-bonus {
+  position: absolute;
+  bottom: 5%; left: 50%;
+  transform: translateX(-50%);
+  width: 20%;
+  padding: 1.5% 0;
+  border: none; border-radius: calc(var(--r)*3);
+  background: radial-gradient(circle at 35% 35%, #ef5350, #b71c1c);
+  color: #fff; font-size: var(--fs-xl); font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 0 2vw rgba(229,57,53,0.7);
+  transition: transform 0.1s;
+}
+#btn-pitch-bonus:active { transform: translateX(-50%) scale(0.93); }
+#btn-pitch-bonus.disabled { opacity: 0.4; pointer-events: none; }
+
+#bonus-jp-bar {
+  position: absolute;
+  top: 2%; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 1.5%;
+}
+
+/* --- Result Overlay --- */
+#result-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+  z-index: 80;
+}
+#result-badge {
+  font-size: var(--fs-2xl);
+  font-weight: 900;
+  padding: 1% 3%;
+  border-radius: calc(var(--r)*3);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: none;
+}
+
+/* --- Settlement --- */
+#settlement-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 100;
+}
+#settlement-overlay.active { display: flex; }
+#settlement-box {
+  background: var(--c-panel);
+  border: 2px solid var(--c-gold);
+  border-radius: calc(var(--r)*4);
+  padding: 3% 5%;
+  text-align: center;
+  min-width: 40%;
+}
+#settlement-box .settle-title  { font-size: var(--fs-xl); color: var(--c-gold); margin-bottom: 2%; }
+#settlement-box .settle-amount { font-size: var(--fs-2xl); font-weight: 900; color: #fff; margin-bottom: 3%; }
+#btn-settle-ok {
+  padding: 1% 4%;
+  border: none; border-radius: calc(var(--r)*2);
+  background: var(--c-btn); color: #fff;
+  font-size: var(--fs-md); cursor: pointer;
+}
+#btn-settle-ok:hover { background: var(--c-btn-h); }
+
+/* --- JP Overlay --- */
+#jp-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 200;
+}
+#jp-overlay.active { display: flex; }
+#jp-trigger-box { text-align: center; animation: jpPulse 0.6s ease-out; }
+#jp-trigger-box .jp-tier-name  { font-size: 8vw; font-weight: 900; text-shadow: 0 0 4vw currentColor; }
+#jp-trigger-box .jp-tier-amount { font-size: var(--fs-2xl); color: var(--c-gold); margin-top: 2%; }
+#jp-trigger-box .jp-ok-btn {
+  margin-top: 4%;
+  padding: 1% 5%;
+  border: none; border-radius: calc(var(--r)*2);
+  background: var(--c-gold); color: #000;
+  font-size: var(--fs-lg); font-weight: 700; cursor: pointer;
+}
+
+/* --- Debug Panel --- */
+#debug-panel {
+  position: absolute;
+  top: 12%; right: 0;
+  width: 18%;
+  background: rgba(0,0,0,0.85);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: calc(var(--r)*2) 0 0 calc(var(--r)*2);
+  padding: 1%;
+  font-size: var(--fs-sm);
+  z-index: 150;
+  transform: translateX(calc(100% - 2.5%));
+  transition: transform 0.3s;
+}
+#debug-panel.open { transform: translateX(0); }
+#debug-toggle {
+  position: absolute;
+  left: -2.5%; top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: calc(var(--r)*2) 0 0 calc(var(--r)*2);
+  color: #fff; cursor: pointer;
+  font-size: var(--fs-sm);
+  padding: 0.5% 0.2%;
+  writing-mode: vertical-lr;
+}
+#debug-panel .dbg-title { color: var(--c-gold); font-weight: 700; margin-bottom: 4%; text-align: center; }
+.dbg-section { margin-bottom: 3%; }
+.dbg-section label { color: var(--c-text-dim); display: block; margin-bottom: 1%; }
+.dbg-btns { display: flex; flex-wrap: wrap; gap: 2%; }
+.dbg-btn {
+  flex: 1; min-width: 45%;
+  padding: 2% 1%;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--r);
+  background: rgba(255,255,255,0.07);
+  color: #fff; font-size: calc(var(--fs-sm)*0.9);
+  cursor: pointer; text-align: center;
+}
+.dbg-btn:hover { background: rgba(255,255,255,0.15); }
+.dbg-btn.danger  { border-color: var(--c-accent); color: var(--c-accent); }
+.dbg-btn.success { border-color: #43a047; color: #43a047; }
+
+/* === ANIMATIONS === */
+@keyframes perfectFlash {
+  0%   { background: rgba(249,168,37,0.6); box-shadow: 0 0 2vw var(--c-gold); }
+  100% { background: rgba(249,168,37,0.22); box-shadow: 0 0 0.8vw rgba(249,168,37,0.5); }
+}
+@keyframes resultBadgeIn {
+  0%   { opacity: 0; transform: scale(0.4) rotate(-5deg); }
+  60%  { opacity: 1; transform: scale(1.1) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+@keyframes resultBadgeOut {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.3) translateY(-2vw); }
+}
+@keyframes ballFly {
+  0%   { opacity: 1; transform: translate(0,0) scale(1); }
+  100% { opacity: 0.3; transform: var(--ball-target) scale(0.5); }
+}
+@keyframes scoreFloat {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-3vw); }
+}
+@keyframes jpPulse {
+  0%   { transform: scale(0.3) rotate(-10deg); opacity: 0; }
+  60%  { transform: scale(1.1) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+@keyframes multiplierPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.5); color: #fff; }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-0.5vw); }
+  40%       { transform: translateX(0.5vw); }
+  60%       { transform: translateX(-0.5vw); }
+  80%       { transform: translateX(0.5vw); }
+}
+@keyframes bonusEntrance {
+  0%   { opacity: 0; transform: translateX(-50%) scale(0.3) translateY(3vw); }
+  70%  { opacity: 1; transform: translateX(-50%) scale(1.1) translateY(-0.5vw); }
+  100% { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===== MAIN SCREEN ===== -->
+  <div id="main-screen" class="screen active">
+
+    <!-- Row 1: Top bar -->
+    <div id="top-bar">
+      <div id="score-display">
+        <div class="label">本局得分</div>
+        <div class="value" id="score-val">0</div>
+      </div>
+      <div id="score-display" style="min-width:10%">
+        <div class="label">底注</div>
+        <div class="value" id="bet-display">100</div>
+      </div>
+      <div class="separator"></div>
+      <button id="btn-fullscreen" title="全螢幕 (F)" style="
+        background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);
+        border-radius:var(--r);color:var(--c-text-dim);font-size:var(--fs-md);
+        padding:0.3% 0.8%;cursor:pointer;white-space:nowrap;">⛶ 全螢幕</button>
+      <div id="jp-bar">
+        <div class="jp-badge mini">
+          <div class="jp-name">MINI</div>
+          <div class="jp-val" id="jp-mini-val">5,000</div>
+        </div>
+        <div class="jp-badge major">
+          <div class="jp-name">MAJOR</div>
+          <div class="jp-val" id="jp-major-val">50,000</div>
+        </div>
+        <div class="jp-badge grand">
+          <div class="jp-name">GRAND</div>
+          <div class="jp-val" id="jp-grand-val">500,000</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Field -->
+    <div id="field-area">
+      <div id="field-svg-wrap">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%, var(--c-field2) 0%, var(--c-field) 60%, #0d2b18 100%);border-radius:50%;"></div>
+        <div style="position:absolute;top:25%;left:25%;right:25%;bottom:15%;background:radial-gradient(ellipse,#6b4c11 0%,#4a3408 100%);border-radius:50%;opacity:0.55;"></div>
+        <div id="diamond">
+          <div class="base-node" id="base-3"></div>
+          <div class="base-node" id="base-2"></div>
+          <div class="base-node" id="base-1"></div>
+          <div class="base-node" id="base-h"></div>
+          <div class="runner-amount" id="runner-amt-1" style="display:none;"></div>
+          <div class="runner-amount" id="runner-amt-2" style="display:none;"></div>
+          <div class="runner-amount" id="runner-amt-3" style="display:none;"></div>
+        </div>
+        <div style="position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);font-size:3vw;">⚾</div>
+        <div id="out-counter">
+          <span class="out-label">OUT</span>
+          <div class="out-dot" id="out-0"></div>
+          <div class="out-dot" id="out-1"></div>
+          <span class="out-label" style="margin-left:1vw;">K</span>
+          <div id="strike-counter">
+            <div class="str-dot" id="str-0"></div>
+            <div class="str-dot" id="str-1"></div>
+          </div>
+        </div>
+      </div>
+      <div id="ball-anim"></div>
+    </div>
+
+    <!-- Row 3: Play area -->
+    <div id="bottom-area">
+
+      <!-- Bet selector -->
+      <div id="bet-panel">
+        <div class="panel-title">底注</div>
+        <button class="bet-btn" data-bet="10">10</button>
+        <button class="bet-btn" data-bet="50">50</button>
+        <button class="bet-btn selected" data-bet="100">100</button>
+        <button class="bet-btn" data-bet="200">200</button>
+        <button class="bet-btn" data-bet="500">500</button>
+      </div>
+
+      <!-- Nine grid -->
+      <div id="grid-panel">
+        <div id="grid-label-row">
+          <span>左</span><span>中</span><span>右</span>
+        </div>
+        <div id="grid-rows">
+          <div class="grid-row">
+            <div class="grid-row-label">外野</div>
+            <div class="grid-cell" data-idx="0" data-mult="1.2" data-zone="左外野" data-hit="12%"><div class="cell-mult">1.2x</div><div class="cell-zone">左外野</div><div class="cell-hit">命中12%</div></div>
+            <div class="grid-cell" data-idx="1" data-mult="0.8" data-zone="中外野" data-hit="18%"><div class="cell-mult">0.8x</div><div class="cell-zone">中外野</div><div class="cell-hit">命中18%</div></div>
+            <div class="grid-cell" data-idx="2" data-mult="1.5" data-zone="右外野" data-hit="10%"><div class="cell-mult">1.5x</div><div class="cell-zone">右外野</div><div class="cell-hit">命中10%</div></div>
+          </div>
+          <div class="grid-row">
+            <div class="grid-row-label">內野</div>
+            <div class="grid-cell" data-idx="3" data-mult="0.9" data-zone="左側" data-hit="15%"><div class="cell-mult">0.9x</div><div class="cell-zone">左側</div><div class="cell-hit">命中15%</div></div>
+            <div class="grid-cell" data-idx="4" data-mult="1.0" data-zone="強襲" data-hit="25%"><div class="cell-mult">1.0x ★</div><div class="cell-zone">強襲</div><div class="cell-hit">命中25%</div></div>
+            <div class="grid-cell" data-idx="5" data-mult="1.8" data-zone="右側" data-hit="8%"><div class="cell-mult">1.8x</div><div class="cell-zone">右側</div><div class="cell-hit">命中8%</div></div>
+          </div>
+          <div class="grid-row">
+            <div class="grid-row-label">前場</div>
+            <div class="grid-cell" data-idx="6" data-mult="1.5" data-zone="三壘側" data-hit="10%"><div class="cell-mult">1.5x</div><div class="cell-zone">三壘側</div><div class="cell-hit">命中10%</div></div>
+            <div class="grid-cell" data-idx="7" data-mult="1.2" data-zone="內野中" data-hit="12%"><div class="cell-mult">1.2x</div><div class="cell-zone">內野中</div><div class="cell-hit">命中12%</div></div>
+            <div class="grid-cell" data-idx="8" data-mult="0.9" data-zone="一壘側" data-hit="15%"><div class="cell-mult">0.9x</div><div class="cell-zone">一壘側</div><div class="cell-hit">命中15%</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pitch button -->
+      <div id="pitch-panel">
+        <button id="btn-pitch">
+          <span>投球</span>
+          <span class="pitch-sub"></span>
+        </button>
+        <button id="btn-auto" class="btn-auto">⚡ 自動</button>
+        <div id="pay-preview">預估賠付 <span id="pay-val">—</span></div>
+      </div>
+
+    </div>
+
+    <!-- Row 4: Asset bar -->
+    <div id="asset-bar">
+      <div class="asset-item">
+        <div class="asset-label">餘額</div>
+        <div class="asset-value" id="balance-val">10,000</div>
+      </div>
+      <div class="asset-divider"></div>
+      <div class="asset-item">
+        <div class="asset-label">底注</div>
+        <div class="asset-value" id="asset-bet-val">100</div>
+      </div>
+      <div class="asset-divider"></div>
+      <div class="asset-item score-item">
+        <div class="asset-label">本局得分</div>
+        <div class="asset-value" id="asset-score-val">0</div>
+      </div>
+      <div class="asset-divider"></div>
+      <div class="asset-item win-item">
+        <div class="asset-label">上局結算</div>
+        <div class="asset-value" id="asset-win-val">—</div>
+      </div>
+    </div>
+
+    <!-- Result badge overlay -->
+    <div id="result-overlay">
+      <div id="result-badge"></div>
+    </div>
+
+  </div><!-- /main-screen -->
+
+  <!-- ===== BONUS SCREEN ===== -->
+  <div id="bonus-screen" class="screen">
+    <div id="bonus-jp-bar">
+      <div class="jp-badge mini"><div class="jp-name">MINI</div><div class="jp-val" id="bjp-mini-val">5,000</div></div>
+      <div class="jp-badge major"><div class="jp-name">MAJOR</div><div class="jp-val" id="bjp-major-val">50,000</div></div>
+      <div class="jp-badge grand"><div class="jp-name">GRAND</div><div class="jp-val" id="bjp-grand-val">500,000</div></div>
+    </div>
+    <div id="bonus-multiplier">
+      <div class="label">MULTIPLIER</div>
+      <div class="value" id="mult-val">1x</div>
+    </div>
+    <div id="bonus-outs">
+      <span class="out-label">OUT</span>
+      <div class="out-dot" id="bout-0"></div>
+      <div class="out-dot" id="bout-1"></div>
+    </div>
+    <div id="bonus-pitcher">🧑‍⚾</div>
+    <div id="bonus-ball-anim" style="position:absolute;inset:0;pointer-events:none;z-index:50;"></div>
+    <div id="bonus-result-overlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:80;">
+      <div id="bonus-result-badge" style="font-size:var(--fs-2xl);font-weight:900;padding:1% 3%;border-radius:calc(var(--r)*3);opacity:0;transform:scale(0.5);"></div>
+    </div>
+    <button id="btn-pitch-bonus">投球</button>
+    <button id="btn-auto-bonus" class="btn-auto">⚡ 自動</button>
+    <div style="position:absolute;bottom:14%;left:50%;transform:translateX(-50%);font-size:var(--fs-sm);color:var(--c-text-dim);text-align:center;">
+      擊出 Multiplier ×2（上限 32x）｜ 出局歸零 ｜ 3 出局結算
+    </div>
+  </div><!-- /bonus-screen -->
+
+  <!-- ===== SETTLEMENT ===== -->
+  <div id="settlement-overlay">
+    <div id="settlement-box">
+      <div class="settle-title" id="settle-title">結算</div>
+      <div class="settle-amount" id="settle-amount">+0</div>
+      <button id="btn-settle-ok">繼續</button>
+    </div>
+  </div>
+
+  <!-- ===== JP OVERLAY ===== -->
+  <div id="jp-overlay">
+    <div id="jp-trigger-box">
+      <div class="jp-tier-name" id="jp-tier-name">GRAND</div>
+      <div style="font-size:var(--fs-xl);color:var(--c-text-dim);">彩金觸發！</div>
+      <div class="jp-tier-amount" id="jp-tier-amount">+500,000</div>
+      <button class="jp-ok-btn" id="btn-jp-ok">太棒了！</button>
+    </div>
+  </div>
+
+  <!-- ===== DEBUG PANEL ===== -->
+  <div id="debug-panel">
+    <button id="debug-toggle">DEBUG</button>
+    <div class="dbg-title">🔧 DEBUG</div>
+    <div class="dbg-section">
+      <label>強制下一球結果</label>
+      <div class="dbg-btns">
+        <button class="dbg-btn" data-force="strike">好球</button>
+        <button class="dbg-btn danger" data-force="flyout">接殺</button>
+        <button class="dbg-btn danger" data-force="groundout">滾地</button>
+        <button class="dbg-btn success" data-force="single">一安</button>
+        <button class="dbg-btn success" data-force="double">二安</button>
+        <button class="dbg-btn danger" data-force="homerun">全壘打</button>
+        <button class="dbg-btn" data-force="wildpitch">暴投</button>
+        <button class="dbg-btn" data-force="none" style="min-width:95%;">重置（隨機）</button>
+      </div>
+    </div>
+    <div class="dbg-section">
+      <label>完美打擊</label>
+      <div class="dbg-btns">
+        <button class="dbg-btn success" data-perfect="hit">強制命中</button>
+        <button class="dbg-btn danger" data-perfect="miss">強制未中</button>
+        <button class="dbg-btn" data-perfect="none" style="min-width:95%;">重置（隨機）</button>
+      </div>
+    </div>
+    <div class="dbg-section">
+      <label>強制觸發</label>
+      <div class="dbg-btns">
+        <button class="dbg-btn danger" data-action="force-bonus">進 Bonus</button>
+        <button class="dbg-btn" data-action="force-jp-mini"  style="color:var(--c-jp-mini);border-color:var(--c-jp-mini);">JP Mini</button>
+        <button class="dbg-btn" data-action="force-jp-major" style="color:var(--c-jp-major);border-color:var(--c-jp-major);">JP Major</button>
+        <button class="dbg-btn" data-action="force-jp-grand" style="color:var(--c-jp-grand);border-color:var(--c-jp-grand);">JP Grand</button>
+      </div>
+    </div>
+    <div class="dbg-section">
+      <label>強制壘包狀態</label>
+      <div class="dbg-btns">
+        <button class="dbg-btn" data-bases="100">1B</button>
+        <button class="dbg-btn" data-bases="010">2B</button>
+        <button class="dbg-btn" data-bases="001">3B</button>
+        <button class="dbg-btn danger" data-bases="111">滿壘</button>
+        <button class="dbg-btn" data-bases="000" style="min-width:95%;">清空壘包</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+// === CONFIG ===
+const CFG = {
+  BET_OPTIONS: [10, 50, 100, 200, 500],
+  DEFAULT_BET: 100,
+
+  // 合計96%；餘4%由 rollResult fallback 補入滾地
+  PROB: { strike: 0.18, flyout: 0.18, groundout: 0.18, wildpitch: 0.05, single: 0.22, double: 0.10, homerun: 0.05 },
+
+  HIT_MULT: { wildpitch: 0.3, single: 0.8, double: 1.6, homerun: 2.2 },
+
+  PERFECT_MULT: 1.5,
+
+  // [mult, zone, hitRate]
+  GRID: [
+    [1.2, '左外野',  0.12], [0.8, '中外野', 0.18], [1.5, '右外野', 0.10],
+    [0.9, '左側',    0.15], [1.0, '強襲',   0.25], [1.8, '右側',   0.08],
+    [1.5, '三壘側',  0.10], [1.2, '內野中', 0.12], [0.9, '一壘側', 0.15],
+  ],
+
+  JP: {
+    mini:  { name: 'MINI',  base: 50,   probPerBall: 0.05,  color: '#43a047' },
+    major: { name: 'MAJOR', base: 500,  probPerBall: 0.01,  color: '#1e88e5' },
+    grand: { name: 'GRAND', base: 5000, probPerBall: 0.001, color: '#e53935' },
+  },
+
+  BONUS_MULT_MAX: 32,
+  RUNNER_BASE_AMT: 500,
+};
+
+// === STATE ===
+const S = {
+  phase: 'normal',
+  bet: CFG.DEFAULT_BET,
+  selectedCell: null,
+  outs: 0,
+  score: 0,
+  bases: [null, null, null],
+  isAnimating: false,
+  lockedBetMult: null,
+  strikeCount: 0,
+  balance: 10000,
+  lastWin: null,
+
+  bonusOuts: 0,
+  bonusMult: 1,
+  bonusHits: 0,
+
+  jp: {
+    mini:  CFG.JP.mini.base  * CFG.DEFAULT_BET,
+    major: CFG.JP.major.base * CFG.DEFAULT_BET,
+    grand: CFG.JP.grand.base * CFG.DEFAULT_BET,
+  },
+
+  forceResult: null,
+  forcePerfect: null,
+  forceJP: null,
+
+  autoPlay: false,
+};
+
+// === CORE LOGIC ===
+function rollResult() {
+  if (S.forceResult && S.forceResult !== 'none') {
+    const r = S.forceResult; S.forceResult = null; resetForceUI(); return r;
+  }
+  const r = Math.random();
+  let acc = 0;
+  for (const [key, p] of Object.entries(CFG.PROB)) {
+    acc += p;
+    if (r < acc) return key;
+  }
+  return 'groundout';
+}
+
+function rollPerfect(cellIdx) {
+  if (S.forcePerfect === 'hit')  { S.forcePerfect = null; resetForceUI(); return true; }
+  if (S.forcePerfect === 'miss') { S.forcePerfect = null; resetForceUI(); return false; }
+  return Math.random() < CFG.GRID[cellIdx][2];
+}
+
+function rollJP() {
+  if (S.forceJP) { const t = S.forceJP; S.forceJP = null; resetForceUI(); return t; }
+  for (const [tier, cfg] of Object.entries(CFG.JP)) {
+    if (Math.random() < cfg.probPerBall) return tier;
+  }
+  return null;
+}
+
+function calcPayout(result, cellIdx, isPerfect) {
+  if (!CFG.HIT_MULT[result]) return 0;
+  const gridMult   = cellIdx !== null ? CFG.GRID[cellIdx][0] : (S.lockedBetMult || 1);
+  const resultMult = CFG.HIT_MULT[result];
+  const perfectBonus = isPerfect ? CFG.PERFECT_MULT : 1;
+  return S.bet * gridMult * resultMult * perfectBonus;
+}
+
+function advanceBases(result) {
+  const nb = [...S.bases];
+  const scored = [];
+  if (result === 'flyout' || result === 'groundout' || result === 'strike') return { scored, newBases: nb };
+
+  const advance = result === 'homerun'   ? 4 :
+                  result === 'double'    ? 2 : 1;
+
+  for (let i = 2; i >= 0; i--) {
+    if (!nb[i]) continue;
+    const newPos = i + advance;
+    if (newPos >= 3) { scored.push(nb[i]); nb[i] = null; }
+    else             { nb[newPos] = nb[i]; nb[i] = null; }
+  }
+
+  if (result !== 'homerun') {
+    const bPos = advance - 1;
+    if (bPos < 3) nb[bPos] = { amount: 0 };
+  }
+  return { scored, newBases: nb };
+}
+
+// === UI UPDATE ===
+function updateScoreDisplay() {
+  document.getElementById('score-val').textContent = S.score.toLocaleString();
+  document.getElementById('asset-score-val').textContent = S.score.toLocaleString();
+}
+
+function updateAssetBar() {
+  document.getElementById('balance-val').textContent   = S.balance.toLocaleString();
+  document.getElementById('asset-bet-val').textContent = S.bet.toLocaleString();
+  document.getElementById('asset-score-val').textContent = S.score.toLocaleString();
+  document.getElementById('asset-win-val').textContent =
+    S.lastWin !== null ? '+' + S.lastWin.toLocaleString() : '—';
+}
+
+function updateBetDisplay() {
+  document.getElementById('bet-display').textContent = S.bet.toLocaleString();
+  for (const [tier, cfg] of Object.entries(CFG.JP)) {
+    S.jp[tier] = Math.max(S.jp[tier], cfg.base * S.bet);
+  }
+  updateJPDisplay();
+  updateAssetBar();
+}
+
+function updateJPDisplay() {
+  document.getElementById('jp-mini-val').textContent   = S.jp.mini.toLocaleString();
+  document.getElementById('jp-major-val').textContent  = S.jp.major.toLocaleString();
+  document.getElementById('jp-grand-val').textContent  = S.jp.grand.toLocaleString();
+  document.getElementById('bjp-mini-val').textContent  = S.jp.mini.toLocaleString();
+  document.getElementById('bjp-major-val').textContent = S.jp.major.toLocaleString();
+  document.getElementById('bjp-grand-val').textContent = S.jp.grand.toLocaleString();
+}
+
+function updateOutDots(container, outs) {
+  container.querySelectorAll('.out-dot').forEach((d, i) => d.classList.toggle('active', i < outs));
+}
+
+function updateStrikeDots() {
+  document.querySelectorAll('.str-dot').forEach((d, i) => d.classList.toggle('active', i < S.strikeCount));
+}
+
+function updateBaseDisplay() {
+  ['1','2','3'].forEach((b, i) => {
+    const node = document.getElementById('base-'+b);
+    const lbl  = document.getElementById('runner-amt-'+b);
+    const runner = S.bases[i];
+    node.classList.toggle('occupied', !!runner);
+    if (runner && runner.amount > 0) {
+      lbl.style.display = 'block';
+      lbl.textContent = '+' + runner.amount.toLocaleString();
+      const offsets = [
+        { right:'10%', top:'52%' },
+        { left:'44%',  top:'2%'  },
+        { left:'2%',   top:'52%' },
+      ];
+      Object.assign(lbl.style, offsets[i]);
+    } else {
+      lbl.style.display = 'none';
+    }
+  });
+}
+
+function updatePayPreview() {
+  const el = document.getElementById('pay-val');
+  if (S.selectedCell === null) { el.textContent = '—'; return; }
+  const mult = CFG.GRID[S.selectedCell][0];
+  const base = S.bet * mult;
+  el.textContent = `${(base*0.8*0.5).toLocaleString()}～${(base*1.6*1.5).toLocaleString()}`;
+}
+
+function setPitchBtnState(enabled) {
+  const btn = document.getElementById('btn-pitch');
+  btn.classList.toggle('disabled', !enabled);
+  if (enabled && S.autoPlay) setTimeout(doPitch, 700);
+}
+
+function enableBonusPitchBtn() {
+  document.getElementById('btn-pitch-bonus').classList.remove('disabled');
+  if (S.autoPlay) setTimeout(doBonusPitch, 700);
+}
+
+function updateAutoButtons() {
+  document.querySelectorAll('.btn-auto').forEach(b => b.classList.toggle('active', S.autoPlay));
+}
+
+function showResultBadge(el, text, color, bg, cb) {
+  el.textContent = text;
+  el.style.color  = color;
+  el.style.background = bg;
+  el.style.border = `0.2vw solid ${color}`;
+  el.style.opacity = '1';
+  el.style.transform = 'scale(1)';
+  el.style.animation = 'resultBadgeIn 0.4s ease-out forwards';
+  setTimeout(() => {
+    el.style.animation = 'resultBadgeOut 0.35s ease-in forwards';
+    setTimeout(() => { el.style.opacity = '0'; el.style.animation = ''; if (cb) cb(); }, 350);
+  }, 900);
+}
+
+function floatScore(amount, el) {
+  const f = document.createElement('div');
+  f.textContent = '+' + amount.toLocaleString();
+  f.style.cssText = `position:absolute;left:50%;top:40%;transform:translateX(-50%);
+    font-size:var(--fs-xl);font-weight:900;color:var(--c-gold);pointer-events:none;
+    animation:scoreFloat 1.2s ease-out forwards;text-shadow:0 2px 6px #000;z-index:90;`;
+  el.appendChild(f);
+  setTimeout(() => f.remove(), 1200);
+}
+
+function animateBall(dirIdx, cb) {
+  const container = document.getElementById('ball-anim');
+  const ball = document.createElement('div');
+  ball.textContent = '⚾';
+  const targets = [
+    'translate(-30vw,-25vw)', 'translate(0,-28vw)',  'translate(30vw,-25vw)',
+    'translate(-15vw,-12vw)', 'translate(0,-10vw)',  'translate(15vw,-12vw)',
+    'translate(-10vw,-5vw)',  'translate(0,-5vw)',   'translate(10vw,-5vw)',
+  ];
+  const target = targets[dirIdx] || 'translate(0,-15vw)';
+  ball.style.cssText = `position:absolute;font-size:2.5vw;left:50%;bottom:55%;
+    transform:translateX(-50%);pointer-events:none;z-index:60;
+    --ball-target:${target};animation:ballFly 0.6s ease-out forwards;`;
+  container.appendChild(ball);
+  setTimeout(() => { ball.remove(); if (cb) cb(); }, 620);
+}
+
+function showSettlement(title, amount, cb) {
+  document.getElementById('settle-title').textContent  = title;
+  document.getElementById('settle-amount').textContent = '+' + amount.toLocaleString();
+  const overlay = document.getElementById('settlement-overlay');
+  overlay.classList.add('active');
+  document.getElementById('btn-settle-ok').onclick = () => {
+    overlay.classList.remove('active');
+    if (cb) cb();
+  };
+}
+
+function showJPOverlay(tier, amount, cb) {
+  const cfg = CFG.JP[tier];
+  document.getElementById('jp-tier-name').textContent   = cfg.name + ' JP';
+  document.getElementById('jp-tier-name').style.color   = cfg.color;
+  document.getElementById('jp-tier-amount').textContent = '+' + amount.toLocaleString();
+  document.getElementById('jp-overlay').classList.add('active');
+  document.getElementById('btn-jp-ok').onclick = () => {
+    document.getElementById('jp-overlay').classList.remove('active');
+    if (cb) cb();
+  };
+}
+
+function updateBonusMult() {
+  const el = document.getElementById('mult-val');
+  el.textContent = S.bonusMult + 'x';
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = 'multiplierPop 0.4s ease-out forwards';
+}
+
+function updateBonusOutDots() {
+  updateOutDots(document.getElementById('bonus-screen'), S.bonusOuts);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function resetForceUI() {
+  document.querySelectorAll('.dbg-btn[data-force],.dbg-btn[data-perfect]').forEach(b => b.style.outline = '');
+}
+
+// === EVENT BINDING ===
+function bindEvents() {
+  // Grid cells
+  document.querySelectorAll('.grid-cell').forEach(cell => {
+    cell.addEventListener('click', () => {
+      if (S.isAnimating || S.phase !== 'normal') return;
+      document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('selected'));
+      cell.classList.add('selected');
+      S.selectedCell = parseInt(cell.dataset.idx);
+      setPitchBtnState(true);
+      updatePayPreview();
+    });
+  });
+
+  // Bet buttons
+  document.querySelectorAll('.bet-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (S.isAnimating) return;
+      document.querySelectorAll('.bet-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      S.bet = parseInt(btn.dataset.bet);
+      updateBetDisplay();
+      updatePayPreview();
+    });
+  });
+
+  document.getElementById('btn-pitch').addEventListener('click', doPitch);
+  document.getElementById('btn-pitch-bonus').addEventListener('click', doBonusPitch);
+
+  function toggleAuto() {
+    S.autoPlay = !S.autoPlay;
+    updateAutoButtons();
+    if (S.autoPlay) {
+      if (S.phase === 'normal' && !S.isAnimating && S.selectedCell !== null) doPitch();
+      else if (S.phase === 'bonus' && !S.isAnimating) doBonusPitch();
+    }
+  }
+  document.getElementById('btn-auto').addEventListener('click', toggleAuto);
+  document.getElementById('btn-auto-bonus').addEventListener('click', toggleAuto);
+
+  document.getElementById('debug-toggle').addEventListener('click', () => {
+    document.getElementById('debug-panel').classList.toggle('open');
+  });
+
+  document.querySelectorAll('.dbg-btn[data-force]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      S.forceResult = btn.dataset.force;
+      document.querySelectorAll('.dbg-btn[data-force]').forEach(b => b.style.outline = '');
+      if (S.forceResult !== 'none') btn.style.outline = '2px solid var(--c-gold)';
+    });
+  });
+
+  document.querySelectorAll('.dbg-btn[data-perfect]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      S.forcePerfect = btn.dataset.perfect;
+      document.querySelectorAll('.dbg-btn[data-perfect]').forEach(b => b.style.outline = '');
+      if (S.forcePerfect !== 'none') btn.style.outline = '2px solid var(--c-gold)';
+    });
+  });
+
+  document.querySelectorAll('.dbg-btn[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const a = btn.dataset.action;
+      if (a === 'force-bonus') triggerBonus();
+      else if (a.startsWith('force-jp-')) {
+        S.forceJP = a.replace('force-jp-', '');
+        btn.style.outline = '2px solid var(--c-gold)';
+        setTimeout(() => btn.style.outline = '', 1500);
+      }
+    });
+  });
+
+  document.querySelectorAll('.dbg-btn[data-bases]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const bits = btn.dataset.bases;
+      S.bases = [
+        bits[0]==='1' ? { amount: Math.round(S.bet * 5) } : null,
+        bits[1]==='1' ? { amount: Math.round(S.bet * 7) } : null,
+        bits[2]==='1' ? { amount: Math.round(S.bet * 9) } : null,
+      ];
+      updateBaseDisplay();
+    });
+  });
+}
+
+// === GAME FLOW ===
+function doPitch() {
+  if (S.isAnimating || S.selectedCell === null || S.phase !== 'normal') return;
+  S.isAnimating = true;
+  setPitchBtnState(false);
+
+  const result    = rollResult();
+  const cellIdx   = S.selectedCell;
+  const isPerfect = (result === 'single' || result === 'double') && rollPerfect(cellIdx);
+  const totalPayout = calcPayout(result, cellIdx, isPerfect);
+  const immediate   = Math.round(totalPayout * 0.5);
+  const delayed     = Math.round(totalPayout * 0.5);
+
+  animateBall(cellIdx, () => processResult(result, cellIdx, isPerfect, immediate, delayed));
+}
+
+function processResult(result, cellIdx, isPerfect, immediate, delayed) {
+  if (isPerfect) {
+    document.querySelectorAll('.grid-cell')[cellIdx].classList.add('perfect-flash');
+    setTimeout(() => document.querySelectorAll('.grid-cell')[cellIdx].classList.remove('perfect-flash'), 700);
+  }
+
+  const badgeEl   = document.getElementById('result-badge');
+  const fieldArea = document.getElementById('field-area');
+  const mainScr   = document.getElementById('main-screen');
+
+  // ── 好球 ──
+  if (result === 'strike') {
+    S.strikeCount++;
+    updateStrikeDots();
+    if (S.strikeCount >= 3) {
+      S.strikeCount = 0; updateStrikeDots();
+      S.outs++; updateOutDots(mainScr, S.outs);
+      document.getElementById('diamond').style.animation = 'shake 0.3s ease-out';
+      setTimeout(() => document.getElementById('diamond').style.animation = '', 350);
+      showResultBadge(badgeEl, '三振 K！', '#ef9a9a', 'rgba(183,28,28,0.8)', () => {
+        if (S.outs >= 3) endInning();
+        else { S.isAnimating = false; setPitchBtnState(true); }
+      });
+    } else {
+      showResultBadge(badgeEl, `好球 ${S.strikeCount}`, '#ffd700', 'rgba(80,60,0,0.85)', () => {
+        S.isAnimating = false; setPitchBtnState(true);
+      });
+    }
+    return;
+  }
+
+  // ── 接殺 / 滾地 ──
+  if (result === 'flyout' || result === 'groundout') {
+    S.strikeCount = 0; updateStrikeDots();
+    S.outs++; updateOutDots(mainScr, S.outs);
+    document.getElementById('diamond').style.animation = 'shake 0.3s ease-out';
+    setTimeout(() => document.getElementById('diamond').style.animation = '', 350);
+    showResultBadge(badgeEl,
+      (result === 'flyout' ? '接殺出局' : '滾地出局') + ' ✗',
+      '#ef9a9a', 'rgba(183,28,28,0.8)', () => {
+        if (S.outs >= 3) endInning();
+        else { S.isAnimating = false; setPitchBtnState(true); }
+      });
+    return;
+  }
+
+  // ── 安打 / 全壘打 / 暴投 ──
+  S.strikeCount = 0; updateStrikeDots();
+
+  const labels = {
+    wildpitch: { text:'暴投！',                     color:'#80cbc4', bg:'rgba(0,96,100,0.8)' },
+    single:    { text: isPerfect?'完美！一安 ⭐':'一壘安打', color: isPerfect?'#ffd700':'#a5d6a7', bg: isPerfect?'rgba(100,70,0,0.85)':'rgba(27,94,32,0.8)' },
+    double:    { text: isPerfect?'完美！二安 ⭐':'二壘安打', color: isPerfect?'#ffd700':'#81c784', bg: isPerfect?'rgba(100,70,0,0.85)':'rgba(27,94,32,0.8)' },
+    homerun:   { text:'全壘打！🏆',                color:'#ffd700', bg:'rgba(120,50,0,0.9)' },
+  };
+  const lbl = labels[result];
+  showResultBadge(badgeEl, lbl.text, lbl.color, lbl.bg, () => {
+    if (result === 'homerun') setTimeout(() => triggerBonus(), 400);
+    else { S.isAnimating = false; setPitchBtnState(true); }
+  });
+
+  if (immediate > 0) { S.score += immediate; updateScoreDisplay(); floatScore(immediate, fieldArea); }
+
+  const { scored, newBases } = advanceBases(result);
+  if (result !== 'homerun' && delayed > 0) {
+    const bPos = result === 'double' ? 1 : 0;
+    if (newBases[bPos]) newBases[bPos].amount = delayed;
+  }
+
+  let runnerRewards = scored.reduce((a, r) => a + (r.amount || 0), 0);
+  if (result === 'homerun') {
+    runnerRewards = S.bases.reduce((a, r) => a + (r ? r.amount : 0), 0);
+    newBases[0] = newBases[1] = newBases[2] = null;
+  }
+
+  S.bases = newBases; updateBaseDisplay();
+  if (runnerRewards > 0) {
+    S.score += runnerRewards; updateScoreDisplay();
+    setTimeout(() => floatScore(runnerRewards, fieldArea), 300);
+  }
+}
+
+function endInning() {
+  S.bases = [null, null, null];
+  S.outs = 0; S.strikeCount = 0;
+  updateBaseDisplay();
+  updateOutDots(document.getElementById('main-screen'), 0);
+  updateStrikeDots();
+  document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('selected'));
+  S.selectedCell = null;
+  setPitchBtnState(false);
+  updatePayPreview();
+
+  const win = S.score;
+  S.balance += win; S.lastWin = win;
+  showSettlement('局結束', win, () => {
+    S.score = 0; updateScoreDisplay(); updateAssetBar();
+    const dc = document.querySelector('.grid-cell[data-idx="4"]');
+    dc.classList.add('selected'); S.selectedCell = 4;
+    setPitchBtnState(true); updatePayPreview();
+    S.isAnimating = false;
+  });
+}
+
+function triggerBonus() {
+  S.phase = 'bonus';
+  S.lockedBetMult = S.selectedCell !== null ? CFG.GRID[S.selectedCell][0] : 1;
+  S.bonusMult = 1; S.bonusOuts = 0; S.bonusHits = 0;
+  S.isAnimating = false;
+
+  showScreen('bonus-screen');
+  const pitcher = document.getElementById('bonus-pitcher');
+  pitcher.style.animation = 'bonusEntrance 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards';
+  updateBonusMult();
+  updateBonusOutDots();
+  updateJPDisplay();
+  setTimeout(() => enableBonusPitchBtn(), 900);
+}
+
+function doBonusPitch() {
+  if (S.isAnimating || S.phase !== 'bonus') return;
+  S.isAnimating = true;
+  document.getElementById('btn-pitch-bonus').classList.add('disabled');
+
+  const result = rollResult();
+  const isOut  = result === 'flyout' || result === 'groundout' || result === 'strike';
+
+  const container = document.getElementById('bonus-ball-anim');
+  const ball = document.createElement('div');
+  ball.textContent = '⚾';
+  ball.style.cssText = `position:absolute;font-size:3vw;left:50%;bottom:40%;
+    transform:translateX(-50%);pointer-events:none;
+    --ball-target:${isOut ? 'translate(0,-8vw) scale(0.8)' : 'translate(-5vw,-20vw)'};
+    animation:ballFly 0.5s ease-out forwards;`;
+  container.appendChild(ball);
+  setTimeout(() => ball.remove(), 520);
+  setTimeout(() => processBonusResult(result, isOut), 550);
+}
+
+function processBonusResult(result, isOut) {
+  const badgeEl = document.getElementById('bonus-result-badge');
+
+  if (isOut) {
+    S.bonusMult = 1; S.bonusOuts++;
+    updateBonusMult(); updateBonusOutDots();
+    const lbl = result === 'flyout' ? '接殺 OUT' : result === 'groundout' ? '滾地 OUT' : '三振 K';
+    showResultBadge(badgeEl, lbl + ' — 倍率歸零', '#ef9a9a', 'rgba(183,28,28,0.8)', () => {
+      if (S.bonusOuts >= 3) endBonus();
+      else { S.isAnimating = false; enableBonusPitchBtn(); }
+    });
+  } else {
+    if (S.bonusMult < CFG.BONUS_MULT_MAX) S.bonusMult *= 2;
+    S.bonusHits++; updateBonusMult();
+    const t = { homerun:'全壘打 🔥', single:'安打！', double:'二安！', wildpitch:'暴投' }[result] || '安打！';
+    showResultBadge(badgeEl, t + ' ×2', '#ffd700', 'rgba(100,70,0,0.85)', () => checkBonusJP());
+  }
+}
+
+function checkBonusJP() {
+  const tier = rollJP();
+  if (tier) {
+    const amt = S.jp[tier];
+    S.score += amt; updateScoreDisplay();
+    S.jp[tier] = CFG.JP[tier].base * S.bet; updateJPDisplay();
+    showJPOverlay(tier, amt, () => {
+      S.isAnimating = false;
+      enableBonusPitchBtn();
+    });
+  } else {
+    S.isAnimating = false;
+    enableBonusPitchBtn();
+  }
+}
+
+function endBonus() {
+  const bonusPayout = Math.round(S.bet * S.lockedBetMult * S.bonusMult * Math.max(S.bonusHits, 1));
+  S.score += bonusPayout; updateScoreDisplay();
+  S.balance += bonusPayout; S.lastWin = (S.lastWin || 0) + bonusPayout;
+
+  showSettlement(`Bonus 結算　倍率 ${S.bonusMult}x × 擊出 ${S.bonusHits} 球`, bonusPayout, () => {
+    S.phase = 'normal';
+    S.bases = [null, null, null];
+    S.outs = 0; S.strikeCount = 0;
+    S.bonusMult = 1; S.bonusOuts = 0; S.bonusHits = 0;
+    S.lockedBetMult = null;
+    showScreen('main-screen');
+    updateStrikeDots(); updateBaseDisplay();
+    updateOutDots(document.getElementById('main-screen'), 0);
+    document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('selected'));
+    const dc = document.querySelector('.grid-cell[data-idx="4"]');
+    dc.classList.add('selected'); S.selectedCell = 4;
+    setPitchBtnState(true); updatePayPreview(); updateAssetBar();
+    S.isAnimating = false;
+  });
+}
+
+// === INIT ===
+function init() {
+  bindEvents();
+  updateBetDisplay();
+  updateJPDisplay();
+  updateBaseDisplay();
+  updateOutDots(document.getElementById('main-screen'), 0);
+  updateStrikeDots();
+  updateScoreDisplay();
+  updateAssetBar();
+
+  const defaultCell = document.querySelector('.grid-cell[data-idx="4"]');
+  defaultCell.classList.add('selected');
+  S.selectedCell = 4;
+  setPitchBtnState(true);
+  updatePayPreview();
+}
+
+init();
+
+// === FULLSCREEN ===
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen();
+  }
+}
+document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
+document.addEventListener('keydown', e => { if (e.key === 'f' || e.key === 'F') toggleFullscreen(); });
+document.addEventListener('fullscreenchange', () => {
+  document.getElementById('btn-fullscreen').textContent =
+    document.fullscreenElement ? '✕ 退出全螢幕' : '⛶ 全螢幕';
+});
+</script>
+</body>
+</html>
