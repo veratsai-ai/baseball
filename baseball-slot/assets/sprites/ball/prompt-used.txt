@@ -1,0 +1,32 @@
+A single standalone baseball icon centered on solid flat magenta (#FF00FF) background.
+
+ART STYLE:
+- Clean HD hand-painted 2D game asset style. Realistic, three-dimensional, polished render with depth.
+- DO NOT make pixel art. DO NOT make chibi. DO NOT make cel-shaded anime. DO NOT make flat icon style.
+- Photorealistic clean HD baseball with subtle painted texture, like a high-end mobile game item icon.
+
+SUBJECT:
+- One standard regulation baseball, perfectly centered in the frame.
+- White leather surface with classic red stitching forming the iconic curved figure-eight seam pattern (two red curved seam lines visible on the front face).
+- Slightly worn but clean (game-ready, not brand-new shiny plastic, not scuffed up either).
+- Three-dimensional sphere with clear volumetric form.
+
+LIGHTING:
+- Lighting from the upper-left: bright soft highlight on the upper-left of the sphere.
+- Soft shadow gradient on the lower-right side giving the ball clear roundness.
+- NO drop shadow on the ground beneath the ball — the ball floats on solid magenta.
+
+COMPOSITION:
+- Square 1:1 framing.
+- The ball fills approximately 70% of the frame, centered horizontally and vertically, with equal magenta margin on all four sides.
+- Ball is perfectly round in silhouette, no motion blur, no rotation streaks, no speed lines.
+
+CONTAINMENT:
+- The ball must not touch any edge of the frame.
+- No detached sparkles, no glow halo, no FX outside the ball silhouette.
+
+EXCLUSIONS:
+- NO text, NO labels, NO logos, NO numbers, NO brand names on the leather.
+- NO grass, NO field, NO glove, NO bat, NO hand — only the baseball.
+- Background must be 100% solid flat magenta (#FF00FF) full-bleed to all four edges. NO gradient, NO vignette, NO frame, NO border.
+- NO pixel art, NO chibi, NO cel-shaded anime, NO flat vector icon look.

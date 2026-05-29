@@ -1,0 +1,33 @@
+A 2-frame baseball batter animation sheet on solid flat magenta (#FF00FF) background.
+
+ART STYLE:
+- Clean HD hand-painted 2D game asset style. Realistic proportions. Crisp silhouette, smooth painted surfaces, controlled studio lighting from upper-left.
+- DO NOT make pixel art. DO NOT make chibi. DO NOT make cel-shaded anime. DO NOT make western cartoon.
+- Painterly realistic clean HD render, similar to a high-end baseball video game character art.
+
+SUBJECT IDENTITY (must stay identical across both frames):
+- Same single male baseball batter, viewed FROM BEHIND (back view). Face is NOT visible. The back of the helmet and the back of the jersey are visible.
+- Right-handed batter stance.
+- Uniform: blue baseball jersey top with the white number "7" printed large on the back. White long pants. Dark navy blue batting helmet (with side ear flap visible from behind). Black cleats.
+- Holding a wooden baseball bat with both hands.
+- Same body proportions, same uniform colors, same lighting direction in both frames.
+
+SHEET LAYOUT:
+- Exactly 2 equal cells in one row (1 row x 2 columns horizontal layout).
+- Each cell shows the FULL BODY of the same batter from behind.
+- Same bounding box, same character height in both cells. Character fills about 70% of the cell, equal magenta margin on all sides.
+- NO borders, NO lines, NO frames between cells. Cells connected ONLY by solid magenta (#FF00FF) background.
+
+FRAME-BY-FRAME MOTION:
+- LEFT cell (frame 1, idle / ready stance): batter in classic right-handed batting stance, both hands gripping the bat, bat raised high behind right shoulder pointing slightly upward and back. Feet shoulder-width apart. Body still, weight slightly back, ready to swing.
+- RIGHT cell (frame 2, swing follow-through): the bat has just been swung horizontally and is now extended forward and slightly downward to the front-left of the batter. Body has rotated about 30-45 degrees, hips opened. Both hands still on the bat near the end of the follow-through. Feet still planted, back foot pivoted on toe.
+
+CONTAINMENT:
+- Each batter pose must fit fully inside its own cell. The bat must not cross the cell edge or extend into the other cell.
+- Same uniform details, same helmet, same number 7, same skin/glove color in both frames.
+- No floating detached effects, no motion blur lines, no speed lines, no dust clouds.
+
+EXCLUSIONS:
+- NO text, NO labels, NO logos other than the number 7 on the back, NO speech bubbles, NO UI, NO arrows.
+- NO baseball field background, NO crowd, NO stadium — background must be 100% solid flat magenta (#FF00FF) full-bleed to all four edges.
+- NO pixel art, NO chibi, NO cel-shaded anime, NO western cartoon.

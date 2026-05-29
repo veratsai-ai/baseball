@@ -1,0 +1,23 @@
+A horizontal sprite sheet of a baseball PITCHER, exactly 1 row by 4 columns (4 cells side by side, left to right). All 4 cells share the same scale, same canvas height, same character base aligned to the bottom of each cell. Solid uniform magenta #FF00FF background filling the entire sheet edge to edge with no borders, no white frames, no grid lines, no gallery framing. Camera is at slightly low angle for a heroic / commanding feel, viewing the pitcher from the FRONT.
+
+ART STYLE (LOCKED, identical across all 4 frames):
+Clean HD hand-painted 2D game asset. Painterly realistic illustration with soft brushwork shading, smooth gradients, subtle highlights and shadows. Realistic adult athletic proportions (about 7 to 7.5 head heights). Mobile sports / RPG production-quality character art. Rim light coming from the upper-back-left, consistent global lighting in every frame. Clean readable silhouette.
+
+EXCLUDE: pixel art, chunky pixels, 16-bit, retro JRPG. Chibi, super-deformed, big head small body. Cel-shaded anime, flat fills, bold black ink outlines, comic book outlines. Western Disney / Pixar cartoon. Photo-real CG render. White or grey background, gallery frame, painting border, drop shadow.
+
+CHARACTER (LOCKED, identical across all 4 frames):
+A right-handed adult male baseball pitcher shown in FRONT VIEW (camera in front, slightly low angle). Same face, same hairstyle, same body, same uniform in every frame.
+Uniform: white baseball jersey top with subtle red piping, MEDIUM GREY long pants (very important: pants are visibly grey, like classic away-game baseball trousers — light cool grey, NOT white, NOT cream, clearly distinguishable from the white jersey above), red baseball cap, RED stirrup-style high stockings/socks visible between the pants and shoes, black cleats. Brown leather baseball glove on the LEFT hand. Athletic adult male, broad shoulders, determined expression, clean-shaven.
+
+FRAMES (left to right, must show clearly different motion phases of one continuous pitching motion — same person, same uniform, same lighting):
+
+Cell 1 — IDLE / SET POSITION: Pitcher standing tall facing the camera, both hands held together in front of his chest cradling the baseball inside the glove, feet roughly together (close stance), eyes looking straight ahead. Calm, ready posture, weight evenly balanced. Cap brim visible, full body in frame head to cleats.
+
+Cell 2 — WINDUP / LEG LIFT: Same character now in the classic pitcher leg-lift pose. Left knee lifted high so that the left thigh is roughly horizontal (knee at hip height or slightly above), left lower leg hanging down. Right leg straight and planted, supporting all the weight. Right arm bent and raised so the throwing hand holding the ball is up near the right ear / temple level, ball clearly visible in the right hand. Glove (left hand) tucked across the chest. Body slightly arched back, gathering energy.
+
+Cell 3 — RELEASE / STRIDE: Mid-throw release moment. Left foot has now strided forward and just landed on the ground in front. Right arm extended forward and slightly down toward the camera, the ball has just left the right hand and is captured small in mid-air a short distance in front of the right hand. Torso leaning forward over the front (left) leg, right leg behind pushing off. Glove hand pulled in to the chest. The pitch is being delivered AT the camera/viewer.
+
+Cell 4 — FOLLOW THROUGH: Pitch is finished. Body fully bent forward over the front (left) leg, right throwing arm has continued across the body and now extends down-and-to-the-left, fingers pointing roughly toward the pitcher's left hip / outside-left of the body. Right (back) leg lifted off the ground or just starting to swing forward to recover, balance held on the left leg. Classic pitcher follow-through posture, full body weight transferred forward.
+
+CONSISTENCY RULES:
+Same character identity in all 4 cells (same face, same body proportions, same red cap, same white jersey with red piping, same grey pants, same red stockings, same black cleats, same brown glove on left hand). Same global lighting direction in all 4 cells. Same canvas height in all 4 cells. Each character's feet (or planted foot) aligned to the bottom of its cell. No frame may touch the cell edge horizontally. Do NOT draw any visible cell separators, dividers, panel borders, gutters, or grid lines — the magenta background is one continuous color across the whole sheet, and the only thing on top of it is the four pitcher figures placed left to right.

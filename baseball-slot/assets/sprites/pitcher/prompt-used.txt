@@ -1,0 +1,35 @@
+A 2-frame baseball pitcher animation sheet on solid flat magenta (#FF00FF) background.
+
+ART STYLE:
+- Clean HD hand-painted 2D game asset style. Realistic proportions. Crisp silhouette, smooth painted surfaces, controlled studio lighting from upper-left.
+- DO NOT make pixel art. DO NOT make chibi. DO NOT make cel-shaded anime. DO NOT make western cartoon.
+- Painterly realistic clean HD render, similar to a high-end baseball video game character art.
+
+SUBJECT IDENTITY (must stay identical across both frames):
+- Same single male baseball pitcher, viewed FROM THE FRONT, slight low-angle perspective for imposing presence. Face visible, focused expression.
+- Right-handed pitcher.
+- Uniform: white baseball jersey top, GRAY long pants (NOT white pants). Red baseball cap. Red knee-high stockings/socks pulled up over the calves. Black cleats. Brown leather baseball glove on the left hand.
+- Holding a white baseball with red stitching in the right hand.
+- Same body proportions, same uniform colors, same lighting direction in both frames.
+
+SHEET LAYOUT:
+- Exactly 2 equal cells in one row (1 row x 2 columns horizontal layout).
+- Each cell shows the FULL BODY of the same pitcher from the front.
+- Same bounding box, same character height in both cells. Character fills about 70% of the cell, equal magenta margin on all sides.
+- NO borders, NO lines, NO frames between cells. Cells connected ONLY by solid magenta (#FF00FF) background.
+
+FRAME-BY-FRAME MOTION:
+- LEFT cell (frame 1, windup / leg kick): pitcher's left leg is lifted up high in front of the body (knee raised toward chest, classic pitcher leg-kick), right leg still planted on the ground. Right arm holding the baseball, raised up high beside the right ear, elbow bent. Left arm with the glove tucked across the chest. Body upright, weight loaded on the back leg.
+- RIGHT cell (frame 2, release / follow-through): left leg has stepped forward and planted on the ground, right leg pushing off behind. Right arm has just released the ball, extended forward toward the camera, hand open with fingers pointing forward. Body leaning forward, slight twist of the torso. Left arm with glove pulled back near the hip.
+
+CONTAINMENT:
+- Each pitcher pose must fit fully inside its own cell. No limb may cross the cell edge or extend into the other cell.
+- Same uniform details, same red cap, same gray pants, same red stockings, same brown glove in both frames.
+- No floating detached effects, no motion blur lines, no speed lines, no separate ball trail outside the hand.
+- The baseball appears in frame 1 (in the right hand) and may or may not still be near the right hand in frame 2 (just released).
+
+EXCLUSIONS:
+- NO text, NO labels, NO logos, NO speech bubbles, NO UI, NO arrows.
+- NO pitcher's mound, NO baseball field background, NO crowd, NO stadium — background must be 100% solid flat magenta (#FF00FF) full-bleed to all four edges.
+- NO pixel art, NO chibi, NO cel-shaded anime, NO western cartoon.
+- Pants must be GRAY, not white. Do not paint white pants.

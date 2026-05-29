@@ -1,0 +1,24 @@
+A horizontal sprite sheet of a baseball BATTER, exactly 1 row by 4 columns (4 cells side by side, left to right). All 4 cells share the same scale, same canvas height, same character base aligned to the bottom of each cell. Solid uniform magenta #FF00FF background filling the entire sheet edge to edge with no borders, no white frames, no grid lines, no gallery framing.
+
+ART STYLE (LOCKED, identical across all 4 frames):
+Clean HD hand-painted 2D game asset. Painterly realistic illustration with soft brushwork shading, smooth gradients, subtle highlights and shadows. Realistic adult athletic proportions (about 7 to 7.5 head heights). Mobile sports / RPG production-quality character art. Rim light coming from the upper-back-left, consistent global lighting in every frame. Clean readable silhouette.
+
+EXCLUDE: pixel art, chunky pixels, 16-bit, retro JRPG. Chibi, super-deformed, big head small body. Cel-shaded anime, flat fills, bold black ink outlines, comic book outlines. Western Disney / Pixar cartoon. Photo-real CG render. White or grey background, gallery frame, painting border, drop shadow.
+
+CHARACTER (LOCKED, identical across all 4 frames):
+A right-handed adult male baseball batter shown in FULL BACK VIEW (the camera is behind him; his face is never visible in any frame, only the back of his head, helmet, and back of jersey).
+Uniform: solid blue baseball jersey top, plain white long pants with a thin belt, dark blue batting helmet with two ear flaps, black cleats, large white block-letter number "7" centered on the upper back of the jersey.
+Athletic adult male body, broad shoulders, no facial features visible. Hair is hidden under the helmet.
+
+FRAMES (left to right, must show clearly different motion phases of one continuous swing — same person, same uniform, same lighting):
+
+Cell 1 — IDLE / READY STANCE: Batter standing in a calm right-handed batting stance, feet about shoulder-width apart, knees slightly bent, weight slightly back. Bat held up over the right shoulder, angled roughly 45 degrees up and back. Hands gripping the bat at upper-chest / shoulder height on the right side. Pre-pitch waiting posture, body relaxed but ready.
+
+Cell 2 — WINDUP / LOAD: Same stance but loading energy. Bat raised noticeably higher and pulled further back behind the right shoulder. Body slightly coiled away from the pitcher direction (the batter rotates a bit toward the catcher direction, front shoulder closes in). Weight shifted further onto the rear foot. Building potential energy, just before swing initiation.
+
+Cell 3 — SWING / CONTACT: Mid-swing horizontal cut. The bat is now extended outward, roughly horizontal at hip-to-chest height, sweeping through the strike zone in front of the batter. Hips fully rotating, torso turned about 45 degrees toward where the pitcher would be, front foot planted firmly, back foot pivoting on the toe. Power moment with full body rotation captured in motion. Slight motion blur is acceptable on the bat tip but the body stays cleanly painted.
+
+Cell 4 — FOLLOW THROUGH: The swing is finished. The bat has wrapped all the way around the body and now rests over the LEFT shoulder, pointing back-left. The body has fully rotated, torso now facing roughly 90 degrees from the idle stance (toward the first base side from the batter's perspective). Back foot fully pivoted onto its toe, weight transferred onto the front foot. Classic baseball follow-through finish, balanced.
+
+CONSISTENCY RULES:
+Same character identity in all 4 cells (same body proportions, same uniform colors, same number "7" on the back, same helmet, same cleats). Same global lighting direction in all 4 cells. Same canvas height in all 4 cells. Each character's feet aligned to the bottom of its cell. No frame may touch the cell edge horizontally. Do NOT draw any visible cell separators, dividers, panel borders, gutters, or grid lines — the magenta background is one continuous color across the whole sheet, and the only thing on top of it is the four batter figures placed left to right.

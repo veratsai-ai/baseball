@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全壘打投注機</title>
+<style>
+/* === SECTION: CSS-VARIABLES === */
+:root {
+  --grass-light: #4a7c3a;
+  --grass-dark: #2d5023;
+  --grass-stripe: #3d6b30;
+  --dirt-light: #a37050;
+  --dirt-dark: #7a4a2a;
+  --dirt-line: #c8a070;
+  --night-sky: #0a1428;
+  --night-sky-glow: #1a2848;
+  --field-line: rgba(255, 255, 255, 0.9);
+  --wall: #1f3a26;
+  --wall-pad: #d4a04a;
+  --stand: #2a2a32;
+  --stand-light: #3a3a44;
+  --scoreboard: #0e0e14;
+  --accent-gold: #d4a04a;
+  --accent-gold-bright: #f0c060;
+  --danger: #c43a3a;
+  --success: #4ac457;
+  --text-light: #ffffff;
+  --text-dim: #aaa;
+  --bg-overlay: rgba(0, 0, 0, 0.75);
+  --font-display: 'Bebas Neue', 'Impact', system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+/* === SECTION: LAYOUT === */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; overflow: hidden;
+  font-family: var(--font-body);
+  background: #000;
+  color: var(--text-light);
+  user-select: none;
+}
+#game {
+  position: relative;
+  width: 100vw; height: 100vh;
+  max-width: 460px; max-height: 820px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+}
+
+/* === SECTION: FIELD === */
+#field {
+  position: absolute;
+  inset: 0;
+  background-image: url('assets/backgrounds/field-night.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: var(--night-sky);
+  overflow: hidden;
+}
+
+/* === SECTION: ZONES === */
+/* 結果分區：debug 模式可顯示熱區（半透明色塊） */
+.zones {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.zones.debug { opacity: 0.4; }
+.zone {
+  position: absolute;
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  font-size: 10px;
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-radius: 4px;
+}
+.zone[data-id="hr_center"] { top: 6%; left: 40%; width: 20%; height: 14%; background: rgba(212, 160, 74, 0.4); }
+.zone[data-id="jackpot"] { top: 2%; left: 44%; width: 12%; height: 5%; background: rgba(244, 100, 100, 0.4); }
+.zone[data-id="hr_left"] { top: 14%; left: 12%; width: 22%; height: 12%; background: rgba(212, 160, 74, 0.3); }
+.zone[data-id="hr_right"] { top: 14%; left: 66%; width: 22%; height: 12%; background: rgba(212, 160, 74, 0.3); }
+.zone[data-id="hit_left"] { top: 30%; left: 8%; width: 28%; height: 14%; background: rgba(80, 200, 100, 0.3); }
+.zone[data-id="hit_right"] { top: 30%; left: 64%; width: 28%; height: 14%; background: rgba(80, 200, 100, 0.3); }
+.zone[data-id="fly_out"] { top: 48%; left: 32%; width: 36%; height: 12%; background: rgba(120, 120, 120, 0.3); }
+.zone[data-id="ground_out"] { top: 62%; left: 30%; width: 40%; height: 12%; background: rgba(120, 120, 120, 0.3); }
+.zone[data-id="foul_left"] { top: 70%; left: 0%; width: 18%; height: 12%; background: rgba(80, 80, 80, 0.4); }
+.zone[data-id="foul_right"] { top: 70%; left: 82%; width: 18%; height: 12%; background: rgba(80, 80, 80, 0.4); }
+.zone[data-id="behind_batter"] { bottom: 0%; left: 30%; width: 40%; height: 8%; background: rgba(60, 60, 60, 0.4); }
+
+/* === SECTION: CHARACTERS === */
+.pitcher {
+  position: absolute;
+  top: 54%; left: 50%;
+  width: 24%; height: auto;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6));
+  transition: transform 0.4s ease-out;
+  pointer-events: none;
+  user-select: none;
+}
+.pitcher.windup { transform: translate(-50%, -50%) scale(1.08) translateY(-3px); }
+.pitcher.release { transform: translate(-50%, -50%) scale(0.94) translateY(3px); }
+
+.batter {
+  position: absolute;
+  bottom: 16%; left: 36%;
+  width: 38%; height: auto;
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+  z-index: 8;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.7));
+  transition: transform 0.15s ease-out;
+  pointer-events: none;
+  user-select: none;
+}
+.batter.swing { transform: translateX(-50%) rotate(-10deg) scale(1.05); }
+
+/* === SECTION: BALL === */
+.ball {
+  position: absolute;
+  width: 18px; height: 18px;
+  background-image: url('assets/ui/ball.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.6));
+  z-index: 9;
+  pointer-events: none;
+}
+.ball.hidden { display: none; }
+.ball.spinning { animation: ballSpin 0.6s linear infinite; }
+@keyframes ballSpin { to { transform: rotate(360deg); } }
+
+/* 球 trail 拖影 */
+.trail {
+  position: absolute;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+  z-index: 8;
+  animation: trailFade 0.6s ease-out forwards;
+}
+@keyframes trailFade {
+  from { opacity: 0.7; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.3); }
+}
+
+/* === SECTION: UI === */
+#topbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  z-index: 20;
+  pointer-events: none;
+}
+.balance {
+  background: var(--bg-overlay);
+  border: 1px solid var(--accent-gold);
+  border-radius: 16px;
+  padding: 6px 14px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 0.05em;
+  color: var(--accent-gold-bright);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+.balance .coin {
+  display: inline-block;
+  width: 16px; height: 16px;
+  background-image: url('assets/ui/coin.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  vertical-align: middle;
+  margin-right: 6px;
+  margin-top: -2px;
+}
+
+.title {
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  color: var(--accent-gold);
+  text-shadow: 0 0 8px rgba(212, 160, 74, 0.5);
+  z-index: 21;
+  pointer-events: none;
+}
+
+.debug-toggle {
+  background: var(--bg-overlay);
+  border: 1px solid #555;
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--text-dim);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.debug-toggle.on { color: var(--accent-gold); border-color: var(--accent-gold); }
+
+/* 結果橫幅 */
+.result-banner {
+  position: absolute;
+  top: 35%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(20, 10, 5, 0.85));
+  border: 2px solid var(--accent-gold);
+  border-radius: 8px;
+  padding: 16px 28px;
+  font-family: var(--font-display);
+  text-align: center;
+  z-index: 30;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 0 30px rgba(212, 160, 74, 0.4), inset 0 0 20px rgba(212, 160, 74, 0.1);
+  min-width: 200px;
+}
+.result-banner.show {
+  animation: resultPop 1.8s ease-out forwards;
+}
+@keyframes resultPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  25% { transform: translate(-50%, -50%) scale(1); }
+  85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+}
+.result-banner .label {
+  font-size: 22px;
+  letter-spacing: 0.1em;
+  color: var(--text-light);
+  margin-bottom: 4px;
+}
+.result-banner .payout {
+  font-size: 32px;
+  letter-spacing: 0.05em;
+  color: var(--accent-gold-bright);
+  text-shadow: 0 0 12px rgba(240, 192, 96, 0.6);
+}
+.result-banner.lose {
+  border-color: #555;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+}
+.result-banner.lose .payout { color: var(--text-dim); font-size: 22px; }
+.result-banner.jackpot {
+  border-color: var(--danger);
+  box-shadow: 0 0 40px rgba(244, 100, 100, 0.8), inset 0 0 30px rgba(244, 100, 100, 0.2);
+  animation: resultPopJackpot 2.5s ease-out forwards;
+}
+.result-banner.jackpot .payout {
+  color: #ffeb6e;
+  text-shadow: 0 0 20px #ffeb6e, 0 0 40px var(--accent-gold);
+  font-size: 38px;
+}
+@keyframes resultPopJackpot {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3) rotate(-10deg); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(2deg); }
+  35% { transform: translate(-50%, -50%) scale(1) rotate(-1deg); }
+  50% { transform: translate(-50%, -50%) scale(1.05) rotate(1deg); }
+  85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+}
+
+/* 下注面板 */
+#betpanel {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 12px 16px 16px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.85) 30%);
+  z-index: 20;
+}
+.bet-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.chip {
+  flex: 1;
+  max-width: 80px;
+  background: rgba(40, 30, 20, 0.85);
+  border: 2px solid var(--accent-gold);
+  border-radius: 50px;
+  padding: 8px 4px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  color: var(--accent-gold);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chip:hover { background: rgba(60, 45, 30, 0.95); }
+.chip.selected {
+  background: var(--accent-gold);
+  color: #000;
+  box-shadow: 0 0 12px rgba(212, 160, 74, 0.6);
+  transform: translateY(-2px);
+}
+.chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pitch-btn {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  margin: 0 auto;
+  cursor: pointer;
+  transition: all 0.15s;
+  filter: drop-shadow(0 4px 10px rgba(212, 160, 74, 0.45));
+  user-select: none;
+}
+.pitch-btn:hover { transform: translateY(-2px); filter: drop-shadow(0 6px 14px rgba(212, 160, 74, 0.65)); }
+.pitch-btn:active { transform: translateY(0); }
+.pitch-btn.disabled {
+  filter: grayscale(0.7) brightness(0.55) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* 賠率表 toggle */
+.odds-toggle {
+  position: absolute;
+  bottom: 100px; right: 12px;
+  background: var(--bg-overlay);
+  border: 1px solid var(--accent-gold);
+  border-radius: 50%;
+  width: 38px; height: 38px;
+  font-size: 16px;
+  color: var(--accent-gold);
+  cursor: pointer;
+  z-index: 22;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.odds-panel {
+  position: absolute;
+  bottom: 145px; right: 12px;
+  background: rgba(10, 8, 5, 0.95);
+  border: 1px solid var(--accent-gold);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 12px;
+  z-index: 25;
+  display: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+  min-width: 200px;
+}
+.odds-panel.show { display: block; }
+.odds-panel h3 {
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  color: var(--accent-gold);
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--accent-gold);
+  padding-bottom: 4px;
+}
+.odds-panel table { width: 100%; border-collapse: collapse; }
+.odds-panel td { padding: 3px 4px; }
+.odds-panel td:last-child { text-align: right; color: var(--accent-gold-bright); font-weight: bold; }
+.odds-panel .lose td:last-child { color: var(--text-dim); }
+.odds-panel .footer {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #444;
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* 餘額變動 popup */
+.delta {
+  position: absolute;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: bold;
+  z-index: 25;
+  pointer-events: none;
+  animation: deltaFloat 1.5s ease-out forwards;
+}
+.delta.gain { color: var(--accent-gold-bright); text-shadow: 0 0 8px var(--accent-gold); }
+.delta.loss { color: #ff6464; }
+@keyframes deltaFloat {
+  0% { opacity: 0; transform: translateY(0); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-40px); }
+}
+
+/* 破產 modal */
+.broke-modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  flex-direction: column;
+  gap: 16px;
+}
+.broke-modal.show { display: flex; }
+.broke-modal h2 {
+  font-family: var(--font-display);
+  font-size: 32px;
+  color: var(--danger);
+  letter-spacing: 0.1em;
+}
+.broke-modal button {
+  background: var(--accent-gold);
+  border: none;
+  border-radius: 24px;
+  padding: 12px 28px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  color: #000;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="game">
+
+  <!-- 球場場景 -->
+  <div id="field">
+
+    <!-- 結果熱區（debug 用） -->
+    <div class="zones" id="zones">
+      <div class="zone" data-id="jackpot">特獎</div>
+      <div class="zone" data-id="hr_center">中HR</div>
+      <div class="zone" data-id="hr_left">左HR</div>
+      <div class="zone" data-id="hr_right">右HR</div>
+      <div class="zone" data-id="hit_left">左安</div>
+      <div class="zone" data-id="hit_right">右安</div>
+      <div class="zone" data-id="fly_out">內野飛</div>
+      <div class="zone" data-id="ground_out">內滾</div>
+      <div class="zone" data-id="foul_left">界外</div>
+      <div class="zone" data-id="foul_right">界外</div>
+      <div class="zone" data-id="behind_batter">空振</div>
+    </div>
+
+    <!-- 角色（真圖 sprite，4-frame swap 動畫） -->
+    <img class="pitcher" id="pitcher" src="assets/portrait/pitcher_idle.png" alt="">
+    <img class="batter" id="batter" src="assets/portrait/batter_idle.png" alt="">
+
+    <!-- 球 -->
+    <div class="ball hidden" id="ball"></div>
+
+    <!-- 結果橫幅 -->
+    <div class="result-banner" id="resultBanner">
+      <div class="label" id="resultLabel">—</div>
+      <div class="payout" id="resultPayout">—</div>
+    </div>
+  </div>
+
+  <!-- 頂部資訊 -->
+  <div id="topbar">
+    <div class="balance"><span class="coin">●</span><span id="balance">1000</span></div>
+    <div style="display:flex; gap:6px;">
+      <div class="debug-toggle" id="muteBtn">🔊</div>
+      <div class="debug-toggle" id="debugBtn">熱區</div>
+    </div>
+  </div>
+  <div class="title">HOME RUN SLOT</div>
+
+  <!-- 賠率表 -->
+  <button class="odds-toggle" id="oddsBtn">?</button>
+  <div class="odds-panel" id="oddsPanel">
+    <h3>賠率表</h3>
+    <table>
+      <tr><td>正中央 HR</td><td>8x</td></tr>
+      <tr><td>場外特獎</td><td>20x</td></tr>
+      <tr><td>左/右全壘打</td><td>3x</td></tr>
+      <tr><td>外野安打</td><td>1.5x</td></tr>
+      <tr class="lose"><td>內野出局 / 界外 / 空振</td><td>0</td></tr>
+    </table>
+    <div class="footer">RTP 93%</div>
+  </div>
+
+  <!-- 下注面板 -->
+  <div id="betpanel">
+    <div class="bet-row">
+      <button class="chip" data-bet="10">10</button>
+      <button class="chip selected" data-bet="50">50</button>
+      <button class="chip" data-bet="100">100</button>
+      <button class="chip" data-bet="500">500</button>
+    </div>
+    <img class="pitch-btn" id="pitchBtn" src="assets/ui/btn-pitch.png" alt="PITCH">
+  </div>
+
+  <!-- 破產 modal -->
+  <div class="broke-modal" id="brokeModal">
+    <h2>GAME OVER</h2>
+    <div style="color:#ccc;">籌碼歸零，重新開始？</div>
+    <button id="resetBtn">RESET 1000</button>
+  </div>
+
+</div>
+
+<script>
+// === SECTION: STATE ===
+const STATE = {
+  balance: 1000,
+  bet: 50,
+  pitching: false,
+  debug: false,
+  muted: false,
+};
+
+// === SECTION: SPRITES ===
+const SPRITES = {
+  batterIdle:     'assets/portrait/batter_idle.png',
+  batterWindup:   'assets/portrait/batter_windup.png',
+  batterSwing:    'assets/portrait/batter_swing.png',
+  batterFollow:   'assets/portrait/batter_follow.png',
+  pitcherIdle:    'assets/portrait/pitcher_idle.png',
+  pitcherWindup:  'assets/portrait/pitcher_windup.png',
+  pitcherRelease: 'assets/portrait/pitcher_release.png',
+  pitcherFollow:  'assets/portrait/pitcher_follow.png',
+};
+// 預載所有 frame（避免動畫切換當下才載）
+Object.values(SPRITES).forEach(s => { const i = new Image(); i.src = s; });
+
+// === SECTION: AUDIO ===
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playTone(freq, dur, type = 'sine', vol = 0.2) {
+  if (STATE.muted || !audioCtx) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.frequency.value = freq;
+  o.type = type;
+  g.gain.setValueAtTime(vol, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  o.connect(g).connect(audioCtx.destination);
+  o.start();
+  o.stop(audioCtx.currentTime + dur);
+}
+function playWhoosh(dur = 0.3, peak = 0.4) {
+  if (STATE.muted || !audioCtx) return;
+  const noise = audioCtx.createBufferSource();
+  const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+  noise.buffer = buffer;
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(peak, audioCtx.currentTime + 0.04);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 1800;
+  filter.Q.value = 0.7;
+  noise.connect(filter).connect(gain).connect(audioCtx.destination);
+  noise.start();
+}
+function playCrack() {
+  if (STATE.muted || !audioCtx) return;
+  // 短促木棒擊球聲 (噪音 burst + 低頻 thump)
+  playWhoosh(0.08, 0.6);
+  playTone(120, 0.15, 'square', 0.3);
+}
+function playWin(payoutMul) {
+  // 贏家音階：依倍數高低
+  const baseSeq = [523, 659, 784]; // C E G
+  if (payoutMul >= 8) baseSeq.push(1046, 1318); // 加 C5 E5
+  baseSeq.forEach((f, i) => setTimeout(() => playTone(f, 0.18, 'triangle', 0.25), i * 80));
+}
+function playJackpot() {
+  // 大獎：上升 arpeggio + 鈴聲
+  const seq = [392, 523, 659, 784, 988, 1175, 1568];
+  seq.forEach((f, i) => setTimeout(() => playTone(f, 0.15, 'triangle', 0.3), i * 70));
+  setTimeout(() => {
+    [659, 784, 988].forEach((f, i) => setTimeout(() => playTone(f, 0.4, 'sine', 0.2), i * 100));
+  }, seq.length * 70);
+}
+function playLose() {
+  playTone(220, 0.12, 'sawtooth', 0.18);
+  setTimeout(() => playTone(165, 0.18, 'sawtooth', 0.15), 90);
+}
+function playClick() {
+  playTone(800, 0.04, 'square', 0.1);
+}
+
+// === SECTION: PROBABILITY ===
+// 12 種結果。weight = 機率 × 1000（用整數避免浮點）
+// payout = 賠率（含本金）。0 = 輸掉下注；1.5 = 拿回 1.5 倍下注
+const OUTCOMES = [
+  { id: 'no_swing',     label: 'BALL! 沒出棒',      weight: 100, payout: 0,   target: { top: 95, left: 50 } },
+  { id: 'swing_miss',   label: 'STRIKE! 揮空',      weight: 180, payout: 0,   target: { top: 95, left: 50 } },
+  { id: 'ground_out',   label: '滾地球 接殺！',      weight: 140, payout: 0,   target: { top: 70, left: 50 } },
+  { id: 'fly_out',      label: '投手接殺！',         weight: 100, payout: 0,   target: { top: 54, left: 50 } },
+  { id: 'foul_left',    label: '界外！可惜！',       weight: 65,  payout: 0,   target: { top: 75, left: 8 } },
+  { id: 'foul_right',   label: '界外！可惜！',       weight: 65,  payout: 0,   target: { top: 75, left: 92 } },
+  { id: 'hit_left',     label: '左外野 安打！',      weight: 110, payout: 1.5, target: { top: 35, left: 22 } },
+  { id: 'hit_right',    label: '右外野 安打！',      weight: 110, payout: 1.5, target: { top: 35, left: 78 } },
+  { id: 'hr_left',      label: '左外野 全壘打！',    weight: 50,  payout: 3,   target: { top: 18, left: 22 } },
+  { id: 'hr_right',     label: '右外野 全壘打！',    weight: 50,  payout: 3,   target: { top: 18, left: 78 } },
+  { id: 'hr_center',    label: '正中央 全壘打！',    weight: 25,  payout: 8,   target: { top: 12, left: 50 } },
+  { id: 'jackpot',      label: '🎆 飛出球場！特獎！', weight: 5,   payout: 20,  target: { top: 6, left: 50 } },
+];
+
+const TOTAL_WEIGHT = OUTCOMES.reduce((s, o) => s + o.weight, 0); // 1000
+
+function rollOutcome() {
+  const r = Math.random() * TOTAL_WEIGHT;
+  let acc = 0;
+  for (const o of OUTCOMES) {
+    acc += o.weight;
+    if (r < acc) return o;
+  }
+  return OUTCOMES[OUTCOMES.length - 1];
+}
+
+// === SECTION: ANIMATION ===
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function spawnTrail(x, y) {
+  const t = document.createElement('div');
+  t.className = 'trail';
+  t.style.left = x + 'px';
+  t.style.top = y + 'px';
+  document.getElementById('field').appendChild(t);
+  setTimeout(() => t.remove(), 600);
+}
+
+async function animatePitch() {
+  const ball = document.getElementById('ball');
+  const pitcher = document.getElementById('pitcher');
+  const field = document.getElementById('field');
+
+  // 投球 4-frame 序列：idle (default) → windup → release → follow
+  // idle → windup（抬腿蓄力）
+  pitcher.src = SPRITES.pitcherWindup;
+  pitcher.classList.add('windup');
+  await sleep(400);
+
+  // windup → release（出手瞬間）
+  pitcher.classList.remove('windup');
+  pitcher.classList.add('release');
+  pitcher.src = SPRITES.pitcherRelease;
+  playWhoosh(0.5, 0.3);
+
+  // 球出現在投手手中
+  ball.classList.remove('hidden');
+  ball.classList.add('spinning');
+  ball.style.top = '54%';
+  ball.style.left = '50%';
+  ball.style.transition = 'none';
+
+  await sleep(50);
+
+  // 段 1：投手 → 打者 contact 點（打者腰部高度）
+  const contactTop = 70, contactLeft = 45;
+  ball.style.transition = 'top 0.7s ease-in, left 0.7s ease-in';
+  ball.style.top = contactTop + '%';
+  ball.style.left = contactLeft + '%';
+
+  // 拖影
+  const trailInterval = setInterval(() => {
+    const rect = ball.getBoundingClientRect();
+    const fieldRect = field.getBoundingClientRect();
+    spawnTrail(rect.left - fieldRect.left + 4, rect.top - fieldRect.top + 4);
+  }, 80);
+
+  // release → follow_through（球出手後 350ms，投手身體前傾）
+  setTimeout(() => { pitcher.src = SPRITES.pitcherFollow; }, 350);
+
+  await sleep(700);
+  clearInterval(trailInterval);
+  pitcher.classList.remove('release');
+
+  return { contactTop, contactLeft };
+}
+
+async function animateSwing(outcome, contactPos) {
+  const batter = document.getElementById('batter');
+  const ball = document.getElementById('ball');
+
+  // 沒揮：直接讓球往主審方向飛（idle 維持）
+  if (outcome.id === 'no_swing') {
+    await flyBall(outcome.target);
+    return;
+  }
+
+  // 揮棒 4-frame 序列：idle (default) → windup → swing → follow
+  // idle → windup（短促預備）
+  batter.src = SPRITES.batterWindup;
+  await sleep(80);
+
+  // windup → swing（擊球瞬間 + transform rotate）
+  batter.classList.add('swing');
+  batter.src = SPRITES.batterSwing;
+  playWhoosh(0.18, 0.5);
+  await sleep(120);
+
+  // swing → follow_through（揮棒過了肩）
+  batter.src = SPRITES.batterFollow;
+
+  if (outcome.id === 'swing_miss') {
+    // 空振：球穿過揮棒往後方飛
+    await flyBall(outcome.target);
+    return;
+  }
+
+  // 接觸：球棒擊中聲
+  playCrack();
+  ball.classList.remove('spinning');
+  ball.classList.add('spinning');
+  await flyBall(outcome.target);
+}
+
+async function flyBall(target) {
+  const ball = document.getElementById('ball');
+  const field = document.getElementById('field');
+
+  // 飛行時長依距離調整（簡單估算）
+  const fromTop = parseFloat(ball.style.top);
+  const fromLeft = parseFloat(ball.style.left);
+  const dist = Math.hypot(target.top - fromTop, target.left - fromLeft);
+  const duration = Math.max(0.8, Math.min(1.6, dist / 60));
+
+  ball.style.transition = `top ${duration}s ease-out, left ${duration}s ease-out`;
+  ball.style.top = target.top + '%';
+  ball.style.left = target.left + '%';
+
+  const trailInterval = setInterval(() => {
+    const rect = ball.getBoundingClientRect();
+    const fieldRect = field.getBoundingClientRect();
+    spawnTrail(rect.left - fieldRect.left + 4, rect.top - fieldRect.top + 4);
+  }, 60);
+
+  await sleep(duration * 1000);
+  clearInterval(trailInterval);
+  ball.classList.remove('spinning');
+}
+
+function showResult(outcome, payoutAmount) {
+  const banner = document.getElementById('resultBanner');
+  const label = document.getElementById('resultLabel');
+  const payout = document.getElementById('resultPayout');
+
+  banner.classList.remove('show', 'lose', 'jackpot');
+
+  if (outcome.payout === 0) {
+    banner.classList.add('lose');
+    label.textContent = outcome.label;
+    payout.textContent = '— ' + STATE.bet;
+  } else {
+    if (outcome.id === 'jackpot') banner.classList.add('jackpot');
+    label.textContent = outcome.label;
+    payout.textContent = '+' + payoutAmount;
+  }
+
+  // 強制 reflow 重啟動畫
+  void banner.offsetWidth;
+  banner.classList.add('show');
+}
+
+function showDelta(amount) {
+  const field = document.getElementById('field');
+  const d = document.createElement('div');
+  d.className = 'delta ' + (amount >= 0 ? 'gain' : 'loss');
+  d.textContent = (amount >= 0 ? '+' : '') + amount;
+  d.style.top = '60%';
+  d.style.left = '50%';
+  d.style.transform = 'translateX(-50%)';
+  field.appendChild(d);
+  setTimeout(() => d.remove(), 1500);
+}
+
+// === SECTION: GAME-LOOP ===
+async function pitch() {
+  if (STATE.pitching) return;
+  if (STATE.balance < STATE.bet) {
+    showBroke();
+    return;
+  }
+
+  STATE.pitching = true;
+  setUiLocked(true);
+
+  // 扣下注
+  STATE.balance -= STATE.bet;
+  updateBalance();
+
+  // 抽結果
+  const outcome = rollOutcome();
+
+  // 動畫
+  const contactPos = await animatePitch();
+  await animateSwing(outcome, contactPos);
+
+  // 結算
+  const payoutAmount = Math.round(STATE.bet * outcome.payout);
+  if (payoutAmount > 0) {
+    STATE.balance += payoutAmount;
+    showDelta(payoutAmount);
+    if (outcome.id === 'jackpot') playJackpot();
+    else playWin(outcome.payout);
+  } else {
+    showDelta(-STATE.bet);
+    playLose();
+  }
+  showResult(outcome, payoutAmount);
+
+  await sleep(1800);
+
+  // 重置
+  resetField();
+  updateBalance();
+  STATE.pitching = false;
+  setUiLocked(false);
+
+  // 餘額不夠時 prompt reset
+  if (STATE.balance <= 0) {
+    setTimeout(showBroke, 400);
+  } else if (STATE.balance < STATE.bet) {
+    // 自動降到最高可下注
+    const affordable = [10, 50, 100, 500].filter(b => b <= STATE.balance);
+    if (affordable.length > 0) selectBet(Math.max(...affordable));
+    else setTimeout(showBroke, 400);
+  }
+}
+
+function resetField() {
+  const ball = document.getElementById('ball');
+  ball.classList.add('hidden');
+  ball.classList.remove('spinning');
+  ball.style.transition = 'none';
+  ball.style.top = '38%';
+  ball.style.left = '50%';
+
+  // 角色復位到 idle frame
+  const batter = document.getElementById('batter');
+  batter.classList.remove('swing');
+  batter.src = SPRITES.batterIdle;
+
+  const pitcher = document.getElementById('pitcher');
+  pitcher.classList.remove('release', 'windup');
+  pitcher.src = SPRITES.pitcherIdle;
+}
+
+function setUiLocked(locked) {
+  document.querySelectorAll('.chip').forEach(c => c.disabled = locked);
+  document.getElementById('pitchBtn').classList.toggle('disabled', locked);
+}
+
+function updateBalance() {
+  document.getElementById('balance').textContent = STATE.balance;
+}
+
+function selectBet(amount) {
+  STATE.bet = amount;
+  document.querySelectorAll('.chip').forEach(c => {
+    c.classList.toggle('selected', parseInt(c.dataset.bet) === amount);
+    // 餘額不夠的選項禁用
+    c.disabled = parseInt(c.dataset.bet) > STATE.balance && !STATE.pitching;
+  });
+}
+
+function showBroke() {
+  document.getElementById('brokeModal').classList.add('show');
+}
+
+function reset() {
+  STATE.balance = 1000;
+  STATE.bet = 50;
+  updateBalance();
+  selectBet(50);
+  document.getElementById('brokeModal').classList.remove('show');
+}
+
+// === SECTION: UI-HOOKS ===
+document.querySelectorAll('.chip').forEach(c => {
+  c.addEventListener('click', () => {
+    if (STATE.pitching) return;
+    const amount = parseInt(c.dataset.bet);
+    if (amount > STATE.balance) return;
+    selectBet(amount);
+  });
+});
+
+document.getElementById('pitchBtn').addEventListener('click', () => {
+  initAudio();
+  playClick();
+  pitch();
+});
+
+document.getElementById('debugBtn').addEventListener('click', () => {
+  STATE.debug = !STATE.debug;
+  document.getElementById('zones').classList.toggle('debug', STATE.debug);
+  document.getElementById('debugBtn').classList.toggle('on', STATE.debug);
+});
+
+document.getElementById('muteBtn').addEventListener('click', () => {
+  initAudio();
+  STATE.muted = !STATE.muted;
+  document.getElementById('muteBtn').textContent = STATE.muted ? '🔇' : '🔊';
+});
+
+document.getElementById('oddsBtn').addEventListener('click', () => {
+  document.getElementById('oddsPanel').classList.toggle('show');
+});
+
+document.getElementById('resetBtn').addEventListener('click', reset);
+
+// 初始化
+updateBalance();
+selectBet(50);
+</script>
+</body>
+</html>

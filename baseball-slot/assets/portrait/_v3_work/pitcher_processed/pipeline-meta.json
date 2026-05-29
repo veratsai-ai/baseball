@@ -1,0 +1,184 @@
+{
+  "target": "asset",
+  "mode": "pitcher_throw",
+  "prompt": "",
+  "role": "",
+  "input": "C:\\Users\\Tim\\.claude\\baseball-slot\\assets\\portrait\\_v3_work\\pitcher_raw_v2.png",
+  "threshold": 100,
+  "edge_threshold": 150,
+  "duration": 200,
+  "rows": 1,
+  "cols": 4,
+  "cell_size": 128,
+  "fit_scale": 0.85,
+  "trim_border": 4,
+  "edge_clean_depth": 3,
+  "align": "bottom",
+  "shared_scale": true,
+  "component_mode": "largest",
+  "component_padding": 0,
+  "min_component_area": 1,
+  "edge_touch_margin": 0,
+  "frame_labels": [
+    "pitcher-1",
+    "pitcher-2",
+    "pitcher-3",
+    "pitcher-4"
+  ],
+  "frames": [
+    {
+      "grid": [
+        0,
+        0
+      ],
+      "source_box": [
+        0,
+        0,
+        688,
+        1536
+      ],
+      "component_mode": "largest",
+      "component_count": 1,
+      "selected_component_area": 328710,
+      "selected_component_bbox": [
+        106,
+        85,
+        564,
+        1423
+      ],
+      "crop_bbox": [
+        106,
+        85,
+        564,
+        1423
+      ],
+      "edge_touch": false,
+      "output_size": [
+        37,
+        108
+      ],
+      "paste_position": [
+        45,
+        11
+      ]
+    },
+    {
+      "grid": [
+        0,
+        1
+      ],
+      "source_box": [
+        688,
+        0,
+        1376,
+        1536
+      ],
+      "component_mode": "largest",
+      "component_count": 4,
+      "selected_component_area": 292234,
+      "selected_component_bbox": [
+        36,
+        106,
+        466,
+        1421
+      ],
+      "crop_bbox": [
+        36,
+        106,
+        466,
+        1421
+      ],
+      "edge_touch": false,
+      "output_size": [
+        34,
+        106
+      ],
+      "paste_position": [
+        47,
+        13
+      ]
+    },
+    {
+      "grid": [
+        0,
+        2
+      ],
+      "source_box": [
+        1376,
+        0,
+        2064,
+        1536
+      ],
+      "component_mode": "largest",
+      "component_count": 8,
+      "selected_component_area": 265259,
+      "selected_component_bbox": [
+        0,
+        222,
+        635,
+        1424
+      ],
+      "crop_bbox": [
+        0,
+        222,
+        635,
+        1424
+      ],
+      "edge_touch": true,
+      "output_size": [
+        51,
+        97
+      ],
+      "paste_position": [
+        38,
+        22
+      ]
+    },
+    {
+      "grid": [
+        0,
+        3
+      ],
+      "source_box": [
+        2064,
+        0,
+        2752,
+        1536
+      ],
+      "component_mode": "largest",
+      "component_count": 4,
+      "selected_component_area": 246534,
+      "selected_component_bbox": [
+        0,
+        358,
+        596,
+        1419
+      ],
+      "crop_bbox": [
+        0,
+        358,
+        596,
+        1419
+      ],
+      "edge_touch": true,
+      "output_size": [
+        48,
+        86
+      ],
+      "paste_position": [
+        40,
+        33
+      ]
+    }
+  ],
+  "edge_touch_frames": [
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ]
+  ]
+}
